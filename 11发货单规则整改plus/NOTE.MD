@@ -4,4 +4,27 @@
 禁止出现关键词：TF_DWD_SALE_DLY
 
 
-已完成： 艾瓦兹 阀门  母公司   
+已完成： 艾瓦兹 阀门  母公司   玫德威海     玫德雅昌   玫德庚辰（旧719）  管道（旧1323）   济南雅昌（旧372）山东晨晖
+
+
+and to_char(A.EXPORT_CONFIRM_DATE,'yyyymm') < '202412' ;
+
+
+
+SELECT COMPANY_SN, PERIOD,  SUM(AMT_M_FACT_OUTTAX),SUM(LINE_NET_WEIGHT)
+FROM DWD_SALE_DLY2_TMP
+GROUP BY
+    COMPANY_SN,
+    PERIOD 
+
+MINUS
+
+SELECT COMPANY_SN, PERIOD,  SUM(AMT_M_FACT_OUTTAX),SUM(LINE_NET_WEIGHT)
+FROM TF_DWD_SALE_DLY
+WHERE
+    COMPANY_SN IN ('玫德艾瓦兹')
+    AND PERIOD < TO_DATE (20241201, 'YYMMDD')
+GROUP BY
+    COMPANY_SN,
+    PERIOD
+    
