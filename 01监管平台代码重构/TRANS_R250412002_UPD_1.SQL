@@ -1,0 +1,79 @@
+
+
+---更新作业表问题行数、最后执行时间
+UPDATE DWD_DATA_CHECK_JOB
+SET
+    ISSUE_LINE_COUNT = (
+        SELECT COUNT(1)
+        FROM DWD_R250412002_J01 A
+        WHERE
+            CHECK_TIME = (
+                SELECT MAX(CHECK_TIME)
+                FROM DWD_R250412002_J01
+            )
+            AND A.IS_HX = '否'
+    ),
+    IS_LAST_EXC = '是',
+    JOB_LAST_RUN_TIME = SYSDATE
+WHERE
+    JOB_CODE = 'R250412002_J01';
+
+---更新规则表问题行数、最后执行时间
+UPDATE DWD_DATA_CHECK_RULE 
+    SET ISSUE_LINE_COUNT = (
+        SELECT  SUM(ISSUE_LINE_COUNT) FROM  DWD_DATA_CHECK_JOB   A 
+        WHERE   RULE_CODE = 'R250412002'
+        ) 
+，RULE_CHECK_LAST_TIME =  (
+        SELECT  JOB_LAST_RUN_TIME FROM  DWD_DATA_CHECK_JOB   A 
+        WHERE   IS_LAST_EXC = '是' AND RULE_CODE = 'R250412002'
+        ) 
+WHERE RULE_CODE = 'R250412002'
+;
+
+-----------------------------------------
+
+DECLARE
+    v_new_data_count NUMBER; 
+BEGIN
+    SELECT COUNT(1) INTO v_new_data_count 
+    FROM DWD_R250412002_J01 
+    WHERE IS_NEW_DATA = '是';  
+
+    IF v_new_data_count = 0 THEN
+        UPDATE DWD_DATA_CHECK_JOB 
+        SET ISSUE_LINE_COUNT = 0,
+        IS_LAST_EXC = '是',  
+        JOB_LAST_RUN_TIME = SYSDATE
+        WHERE JOB_CODE = 'R250412002_J01';
+    ELSE
+        UPDATE DWD_DATA_CHECK_JOB 
+        SET ISSUE_LINE_COUNT = (
+            SELECT COUNT(1) 
+            FROM DWD_R250412002_J01 
+            WHERE CHECK_TIME = (SELECT MAX(CHECK_TIME) FROM DWD_R250412002_J01) 
+              AND IS_HX = '否'
+        ),
+        IS_LAST_EXC = '是',
+        JOB_LAST_RUN_TIME = (SELECT MAX(CHECK_TIME) FROM DWD_R250412002_J01)
+        WHERE JOB_CODE = 'R250412002_J01';
+    END IF;
+    
+    UPDATE DWD_DATA_CHECK_RULE 
+    SET ISSUE_LINE_COUNT = (
+        SELECT SUM(ISSUE_LINE_COUNT) 
+        FROM DWD_DATA_CHECK_JOB 
+        WHERE RULE_CODE = 'R250412002'
+    ),
+    RULE_CHECK_LAST_TIME = (
+        SELECT MAX(JOB_LAST_RUN_TIME) 
+        FROM DWD_DATA_CHECK_JOB 
+        WHERE IS_LAST_EXC = '是' 
+          AND RULE_CODE = 'R250412002'
+    )
+    WHERE RULE_CODE = 'R250412002';
+END;
+
+
+SELECT ISSUE_LINE_COUNT,JOB_LAST_RUN_TIME  FROM DWD_DATA_CHECK_JOB
+ WHERE JOB_CODE = 'R250412002_J01'

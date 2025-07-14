@@ -1,0 +1,370 @@
+
+
+INSERT INTO MDADS.ADS_OPPORTUNITY_UNIT_tmp (
+    YPERIOD, -- 账期
+    OPPORTUNITY_CODE,  -- 商机编码
+    OPPORTUNITY_NAME,  -- 商机名称
+    OPPORTUNITY_ZL,  -- 商机种类
+    OPPORTUNITY_TYPE,  -- 商机类型
+    OPPORTUNITY_LEVEL,  -- 商机级别
+    OPPORTUNITY_STATUS_NAME,  -- 商机状态名称
+    LAST_UPD_DT,  -- 最后更新时间
+    OPPORTUNITY_LAST_CONNECT_DT,  -- 商机最新联系时间
+    OPPORTUNITY_CLOSE_DT,  -- 商机关闭时间
+    OPPORTUNITY_WIN_DT,  -- 商机赢单时间
+    OPPORTUNITY_FILLING_DATE,  -- 商机建档日期
+    OPPORTUNITY_STAGE_CODE,  -- 商机阶段编码
+    OPPORTUNITY_STAGE_NAME,  -- 商机阶段名称
+    EMP_CODE,  -- 员工编号
+    FOLLOWER_NAME,  -- 跟进人名称
+    FOLLOWER_DEPT,  -- 跟进人科室
+    FOLLOWER_DEPT_LEADER,  -- 跟进人科室负责人
+    FOLLOWER_COMPANY,  -- 跟进人成员企业
+    FOLLOWER_SALE_COMPANY,  -- 跟进人销售公司
+    SOURCE_NAME,  -- 来源大类
+    FIELD,  -- 领域
+    DEMAND_PRODUCT_H,  -- 需求产品大类
+    DEMAND_PRODUCT_M,  -- 需求产品中类
+    DEMAND_PRODUCT_P,  -- 需求产品小类
+    CUSTOMER_CODE,  -- 客户编码
+    CUSTOMER_NAME,  -- 客户名称
+    COUNTRY_NAME,  -- 国家名称
+    PROVINCE_NAME,  -- 省份名称
+    CITY_NAME,  -- 市名称
+    PROJECT_NEED_AMOUNT,  -- 项目需求量（万元）
+    COMPANY_SUPPLY,  -- 我司可供量（万元）
+    ESTIMATE_ANNUAL_DEMAND_VAL,  -- 预计年需求量（万元）
+    ESTIMATE_ANNUAL_DEMAND_TON,  -- 预计年需求量（吨）
+    ESTIMATE_NEXT_YEAR_DEMAND_VAL,  -- 预计明年需求量（万元）
+    ESTIMATE_NEXT_YEAR_DEMAND_TON,  -- 预计明年需求量（吨）
+    WIN_RATE,  -- 赢率
+    YEAR_TARGET_AMT,  -- 年度目标值（万元）
+    FINISH_AMT,  -- 当前完成值（万元）
+    IS_LOCAL,  -- 是否本区域
+    IS_OPRT_CO_DT_MT_14,  -- 商机是否超过14天未联系
+    IS_OPRT_CO_DT_MT_30,  -- 商机是否超过30天未联系
+    IS_OPRT_CO_DT_MT_180,  -- 商机是否超过180天未联系
+    IS_OPRT_CO_DT_IN_YPERIOD,  -- 商机是否本期联系
+    ETL_CRT_DT,  -- 创建时间
+    ETL_UPD_DT, -- 更新时间
+    FIELD_COLLECT, --领域_集合
+    DEMAND_PRODUCT_H_COLLECT, --需求产品大类_集合
+    DEMAND_PRODUCT_M_COLLECT, --需求产品中类_集合
+    DEMAND_PRODUCT_P_COLLECT, --需求产品小类_集合
+    SALE_REGION_NAME,  --销售大区全称 
+    SALE_PLATFORM_NAME, --销售平台全称
+    OPPORTUNITY_RESERVES, --商机储量 
+    source2_name, --来源小类
+    IS_REGION_LOCAL --是否本大区区域
+)
+
+
+WITH vars AS (
+
+
+SELECT 
+    v_yesterday,
+    v_last_year,
+    v_last_day,
+    (total_days - days_passed) / total_days AS v_days_past_year
+FROM (
+    SELECT 
+        TRUNC(SYSDATE, 'DD') - 1 AS v_yesterday,
+        TRUNC(TRUNC(SYSDATE, 'DD') - 1, 'YYYY') AS v_last_year,
+        TRUNC(TRUNC(SYSDATE, 'DD') - 1, 'DD') AS v_last_day,
+        -- 计算总天数：通过取年底最后一天的"一年中的第几天"（自动适配闰年）
+        TO_NUMBER(TO_CHAR(ADD_MONTHS(TRUNC(TRUNC(SYSDATE, 'DD') - 1, 'YYYY'), 12) - 1, 'DDD')) AS total_days,
+        -- 计算已过去的天数：昨天的"一年中的第几天"
+        TO_NUMBER(TO_CHAR(TRUNC(SYSDATE-1, 'DD') , 'DDD')) AS days_passed
+    FROM DUAL
+    )
+
+)
+
+
+SELECT
+    TRUNC(SYSDATE, 'DD') -1 AS YPERIOD, --账期
+    A1.OPPORTUNITY_CODE AS  OPPORTUNITY_CODE,  -- 商机编码
+    A1.OPPORTUNITY_NAME AS  OPPORTUNITY_NAME,  -- 商机名称
+    A1.OPPORTUNITY_ZL AS OPPORTUNITY_ZL,  -- 商机种类
+    A1.OPPORTUNITY_TYPE AS  OPPORTUNITY_TYPE,  -- 商机类型
+    CASE
+        WHEN A1.OPPORTUNITY_LEVEL IN('A', 'B', 'C') THEN A1.OPPORTUNITY_LEVEL
+        ELSE 'D'
+    END AS OPPORTUNITY_LEVEL,  -- 商机级别
+    A1.OPPORTUNITY_STATUS_NAME AS OPPORTUNITY_STATUS_NAME,  -- 商机状态名称
+    A1.LAST_UPD_DT AS LAST_UPD_DT,  -- 最后更新时间
+    A1.OPPORTUNITY_LASE_CONNECT_DT AS OPPORTUNITY_LAST_CONNECT_DT,  -- 商机最新联系时间
+    A1.OPPORTUNITY_CLOSE_DT AS OPPORTUNITY_CLOSE_DT,  -- 商机关闭时间
+    A1.OPPORTUNITY_WIN_DT AS OPPORTUNITY_WIN_DT,  -- 商机赢单时间
+    A1.OPPORTUNITY_FILLING_DATE AS OPPORTUNITY_FILLING_DATE,  -- 商机建档日期
+    A1.OPPORTUNITY_STAGE_CODE AS OPPORTUNITY_STAGE_CODE,  -- 商机阶段编码
+    A1.OPPORTUNITY_STAGE_NAME AS OPPORTUNITY_STAGE_NAME,  -- 商机阶段名称
+    A1.EMP_CODE AS EMP_CODE,  -- 员工编号
+    A1.FOLLOWER_NAME AS FOLLOWER_NAME,  -- 跟进人名称
+    NVL(NVL(A1.FOLLOWER_DEPT,B.SALE_BG_DEP_NAME),'其他')  AS FOLLOWER_DEPT,  -- 跟进人科室
+    A1.FOLLOWER_DEPT_LEADER AS FOLLOWER_DEPT_LEADER,  -- 跟进人科室负责人
+
+    A1.FOLLOWER_COMPANY AS FOLLOWER_COMPANY,  -- 跟进人成员企业
+    NVL( A1.FOLLOWER_SALE_COMPANY, B.SALE_COMPANY_NAME)  AS FOLLOWER_SALE_COMPANY,  -- 跟进人销售公司
+    A1.OPPORTUNITY_SRC_NAME_H AS SOURCE_NAME,  -- 来源大类
+    A1.FIELD AS FIELD,  -- 领域
+       NVL(A1.DEMAND_PRODUCT_H,B.PRODUCT_SORT1)  AS DEMAND_PRODUCT_H,  -- 需求产品大类
+    A1.DEMAND_PRODUCT_M AS DEMAND_PRODUCT_M,  -- 需求产品中类
+    A1.DEMAND_PRODUCT_P AS DEMAND_PRODUCT_P,  -- 需求产品小类
+    A1.CUSTOMER_CODE AS CUSTOMER_CODE,  -- 客户编码
+    A1.CUSTOMER_NAME AS CUSTOMER_NAME,  -- 客户名称
+    A1.COUNTRY_NAME AS COUNTRY_NAME,  -- 国家名称
+    A1.PROVINCE_NAME AS PROVINCE_NAME,  -- 省份名称
+    A1.CITY_NAME AS CITY_NAME,  -- 市名称
+    A1.PROJECT_NEED_AMOUNT AS  PROJECT_NEED_AMOUNT,  -- 项目需求量（万元）
+    A1.COMPANY_SUPPLY AS COMPANY_SUPPLY,  -- 我司可供量（万元） 
+    NVL(A1.ESTIMATE_ANNUAL_DEMAND_VAL, 0)  AS ESTIMATE_ANNUAL_DEMAND_VAL,  -- 预计年需求量（万元）
+    NVL(A1.ESTIMATE_ANNUAL_DEMAND_TON, 0)  AS ESTIMATE_ANNUAL_DEMAND_TON,  -- 预计年需求量（吨）
+    NVL(A1.ESTIMATE_NEXT_YEAR_DEMAND_VAL, 0)   AS ESTIMATE_NEXT_YEAR_DEMAND_VAL,  -- 预计明年需求量（万元
+    NVL(A1.ESTIMATE_NEXT_YEAR_DEMAND_TON, 0)  AS ESTIMATE_NEXT_YEAR_DEMAND_TON,  -- 预计明年需求量（吨）
+    A1.WIN_RATE / 100 AS  WIN_RATE,  -- 赢率
+    NVL(AMT_Y_TGT, 0) AS YEAR_TARGET_AMT, --年度目标值：本年预计需求额+明年预计需求额，按销售公司、跟进人科室分组
+    NVL(AMT_MACC_FACT, 0) AS FINISH_AMT,-- 当前完成值（万元）
+   CASE  WHEN E.CITY_NAME IS NOT NULL 
+         AND A1.CITY_NAME = D.CITY_NAME THEN  '是' ELSE '否' END AS IS_LOCAL,  -- 是否本区域
+    IS_OPRT_CO_DT_MT_14 AS IS_OPRT_CO_DT_MT_14,  -- 商机是否超过14天未联系
+    IS_OPRT_CO_DT_MT_30 AS IS_OPRT_CO_DT_MT_30,  -- 商机是否超过30天未联系
+    IS_OPRT_CO_DT_MT_180 AS IS_OPRT_CO_DT_MT_180,  -- 商机是否超过180天未联系
+    IS_OPRT_CO_DT_IN_YPERIOD AS IS_OPRT_CO_DT_IN_YPERIOD,  -- 商机是否本期联系
+   
+    SYSDATE AS ETL_CRT_DT,
+    SYSDATE AS ETL_UPD_DT,
+    A1.FIELD_COLLECT AS FIELD_COLLECT,
+    A1.DEMAND_PRODUCT_H_COLLECT AS DEMAND_PRODUCT_H_COLLECT, --需求产品大类_集合
+    A1.DEMAND_PRODUCT_M_COLLECT AS DEMAND_PRODUCT_M_COLLECT, --需求产品中类_集合
+    A1.DEMAND_PRODUCT_P_COLLECT AS DEMAND_PRODUCT_P_COLLECT, --需求产品小类_集合
+     NVL( A1.SALE_REGION_NAME, B.SALE_REGION_NAME) as  SALE_REGION_NAME,  --销售大区全称 
+    NVL( A1.SALE_PLATFORM_NAME, B.SALE_PLATFORM_NAME) as SALE_PLATFORM_NAME,  --销售平台全称
+      CASE
+        WHEN A1.OPPORTUNITY_STATUS_NAME = '进展中'
+         THEN (NVL(A1.ESTIMATE_ANNUAL_DEMAND_VAL, 0) * (A1.WIN_RATE / 100))
+    WHEN TRUNC(A1.OPPORTUNITY_WIN_DT, 'YYYY') = vars.v_last_year
+         THEN (NVL(A1.ESTIMATE_ANNUAL_DEMAND_VAL, 0) * vars.v_days_past_year)
+    WHEN TRUNC(A1.OPPORTUNITY_WIN_DT, 'YYYY') < vars.v_last_year
+         THEN (NVL(A1.ESTIMATE_NEXT_YEAR_DEMAND_VAL, 0) * vars.v_days_past_year)
+    ELSE 0
+    END  AS OPPORTUNITY_RESERVES, --商机储量 
+       source2_name ,--来源小类
+            CASE
+                  WHEN E2.CITY_NAME IS NOT NULL AND
+                       A1.CITY_NAME = D2.CITY_NAME THEN
+                   '是'
+                  ELSE
+                   '否'
+                END AS    IS_REGION_LOCAL --是否本大区区域
+FROM
+    MDADS.ADS_OPPORTUNITY A1
+    FULL JOIN (
+
+        SELECT
+            TRUNC(PERIOD, 'DD') PERIOD,
+            SALE_PLATFORM_NAME,
+            SALE_REGION_NAME,
+            SALE_COMPANY_NAME,
+            SALE_BG_NAME,
+            SALE_BG_DEP_NAME ,
+            PRODUCT_SORT1,
+            SUM(AMOUNT_M_ACC_ACTUAL_WY) AMT_MACC_FACT,            ---金额年累计实际
+            SUM(AMOUNT_Y_TARGET_WY) AMT_Y_TGT ----金额年度目标
+        FROM
+            ADS_SALE_REVENUE
+        WHERE
+            TRUNC(PERIOD, 'DD') = TRUNC(SYSDATE -1, 'DD')
+            AND SALES_TARGET_TYPE = '挑战目标'
+            AND SALE_PLATFORM_NAME = '国内销售平台'
+        GROUP BY
+            TRUNC(PERIOD, 'DD'),
+            SALE_BG_DEP_NAME,
+            PRODUCT_SORT1,
+            SALE_COMPANY_NAME,
+            SALE_PLATFORM_NAME,
+            SALE_REGION_NAME,
+            SALE_BG_NAME
+    ) B ON NVL(FOLLOWER_DEPT,A1.FOLLOWER_SALE_COMPANY) = B.SALE_BG_DEP_NAME
+    AND A1.DEMAND_PRODUCT_H = B.PRODUCT_SORT1
+
+     LEFT JOIN (
+        SELECT
+            DISTINCT PROVINCE_NAME,
+            COMPANY_SALE_ACT
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) C ON A1.FOLLOWER_SALE_COMPANY = C.COMPANY_SALE_ACT
+    AND A1.PROVINCE_NAME = C.PROVINCE_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            COMPANY_SALE_ACT
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) D ON A1.FOLLOWER_SALE_COMPANY = D.COMPANY_SALE_ACT
+    AND A1.CITY_NAME = D.CITY_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            COMPANY_SALE_ACT
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) E ON A1.FOLLOWER_SALE_COMPANY = E.COMPANY_SALE_ACT
+    AND A1.CITY_NAME = E.CITY_NAME
+
+    LEFT JOIN (
+        SELECT
+            DISTINCT PROVINCE_NAME,
+            REGION
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) C2 ON A1.SALE_REGION_NAME = C2.REGION
+    AND A1.PROVINCE_NAME = C2.PROVINCE_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            REGION
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) D2 ON A1.SALE_REGION_NAME = C2.REGION
+    AND A1.CITY_NAME = D2.CITY_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            REGION
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) E2 ON A1.SALE_REGION_NAME = C2.REGION
+    AND A1.CITY_NAME = E2.CITY_NAME
+
+     CROSS JOIN vars
+ WHERE      NVL( A1.SALE_PLATFORM_NAME, B.SALE_PLATFORM_NAME)  =  '国内销售平台'
+
+UNION ALL 
+
+SELECT
+    TRUNC(SYSDATE, 'DD') -1  AS YPERIOD,-- 账期
+    A1.LEAD_ID AS OPPORTUNITY_CODE,  -- 商机编码
+    A1.LEAD_NAME AS OPPORTUNITY_NAME,  -- 商机名称
+    A1.LEAD_TYPE AS OPPORTUNITY_ZL,  -- 商机种类
+    NULL AS OPPORTUNITY_TYPE,-- 商机类型
+    NULL AS OPPORTUNITY_LEVEL,-- 商机级别
+    A1.LEAD_STATUS AS OPPORTUNITY_STATUS_NAME,-- 商机状态名称
+    A1.LEAD_UPDATE_DATE AS LAST_UPD_DT,-- 最后更新时间
+    NULL AS OPPORTUNITY_LASE_CONNECT_DT, -- 商机最新联系时间
+    NULL AS OPPORTUNITY_CLOSE_DT, -- 商机关闭时间
+    NULL AS OPPORTUNITY_WIN_DT,-- 商机赢单时间
+    A1.LEAD_CREATE_DATE AS OPPORTUNITY_FILLING_DATE, -- 商机建档日期
+    NULL AS OPPORTUNITY_STAGE_CODE, -- 商机阶段编码
+    LEAD_HAS_FOLLOW_UP AS OPPORTUNITY_STAGE_NAME, -- 商机阶段名称
+    EMP_CODE ,  -- 员工编号
+    FOLLOWER_NAME AS FOLLOWER_NAME,  -- 跟进人名称
+    NVL(FOLLOWER_DEPT,'其他') AS FOLLOWER_DEPT, -- 跟进人科室 
+    FOLLOWER_DEPT_LEADER AS FOLLOWER_DEPT_LEADER,  -- 跟进人科室负责人
+    NULL AS FOLLOWER_COMPANY,  -- 跟进人成员企业 
+    A1.FOLLOWER_SALE_COMPANY AS FOLLOWER_SALE_COMPANY,  -- 跟进人销售公司
+    A1.LEAD_SRC_MAJOR_H AS SOURCE_NAME,  -- 来源大类
+    A1.FIELD AS     FIELD,  -- 领域
+    A1.PRODUCT_SORT_H, -- 需求产品大类 
+    A1.PRODUCT_SORT_M, -- 需求产品中类
+    A1.PRODUCT_SORT_P, -- 需求产品小类
+    NULL CUSTOMER_CODE, -- 客户编码
+    NULL CUSTOMER_NAME, -- 客户名称
+    COUNTRY_NAME,-- 国家名称
+    A1.PROVINCE_NAME,  -- 省份名称
+    A1.CITY_NAME,-- 市名称
+    NULL AS PROJECT_NEED_AMOUNT, -- 项目需求量（万元）
+    NULL AS COMPANY_SUPPLY, -- 我司可供量（万元） 
+    NULL AS ESTIMATE_ANNUAL_DEMAND_VAL,  -- 预计年需求量（万元）
+    NULL AS ESTIMATE_ANNUAL_DEMAND_TON, -- 预计年需求量（吨）
+    NULL AS ESTIMATE_NEXT_YEAR_DEMAND_VAL, -- 预计明年需求量（万元）
+    NULL AS ESTIMATE_NEXT_YEAR_DEMAND_TON, --   预计明年需求量（吨）
+    NULL AS WIN_RATE,-- 赢率
+    NULL AS YEAR_TARGET_AMT, -- 年度目标值（万元）
+    NULL AS FINISH_AMT, -- 当前完成值（万元）
+      CASE
+                  WHEN E.CITY_NAME IS NOT NULL AND
+                       A1.CITY_NAME = D.CITY_NAME THEN
+                   '是'
+                  ELSE
+                   '否'
+                END AS  IS_LOCAL,  -- 是否本区域
+    NULL IS_OPRT_CO_DT_MT_14,-- 商机是否超过14天未联系
+    NULL IS_OPRT_CO_DT_MT_30,-- 商机是否超过30天未联系
+    NULL IS_OPRT_CO_DT_MT_180 ,-- 商机是否超过180天未联系
+    NULL IS_OPRT_CO_DT_IN_YPERIOD, -- 商机是否本期联系
+    
+    SYSDATE AS ETL_CRT_DT,   -- 创建时间
+    SYSDATE AS ETL_UPD_DT, -- 更新时间
+    NULL AS FIELD_COLLECT,
+    NULL AS DEMAND_PRODUCT_H_COLLECT,
+    NULL AS DEMAND_PRODUCT_M_COLLECT,
+    NULL AS DEMAND_PRODUCT_P_COLLECT, --需求产品小类_集合
+    A1.SALE_REGION_NAME,  --销售大区全称 
+    A1.SALE_PLATFORM_NAME, --销售平台全称
+    0 AS OPPORTUNITY_RESERVES, --商机储量 
+       source2_name ,--来源小类
+          CASE
+                  WHEN E2.CITY_NAME IS NOT NULL AND
+                       A1.CITY_NAME = D2.CITY_NAME THEN
+                   '是'
+                  ELSE
+                   '否'
+                END AS    IS_REGION_LOCAL --是否本大区区域
+FROM
+    MDADS.ADS_CLUE A1
+ LEFT JOIN (
+        SELECT
+            DISTINCT PROVINCE_NAME,
+            COMPANY_SALE_ACT
+            
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) C ON A1.FOLLOWER_SALE_COMPANY = C.COMPANY_SALE_ACT
+    AND A1.PROVINCE_NAME = C.PROVINCE_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            COMPANY_SALE_ACT
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) D ON A1.FOLLOWER_SALE_COMPANY = D.COMPANY_SALE_ACT
+    AND A1.CITY_NAME = D.CITY_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            COMPANY_SALE_ACT
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) E ON A1.FOLLOWER_SALE_COMPANY = E.COMPANY_SALE_ACT
+    AND A1.CITY_NAME = E.CITY_NAME
+    
+    LEFT JOIN (
+        SELECT
+            DISTINCT PROVINCE_NAME,
+            REGION
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) C2 ON A1.SALE_REGION_NAME = C2.REGION
+    AND A1.PROVINCE_NAME = C2.PROVINCE_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            REGION
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) D2 ON A1.SALE_REGION_NAME = C2.REGION
+    AND A1.CITY_NAME = D2.CITY_NAME
+    LEFT JOIN (
+        SELECT
+            DISTINCT CITY_NAME,
+            REGION
+        FROM
+            ODS_APD.ODS_APD_SALE_COM_MAPPING
+    ) E2 ON A1.SALE_REGION_NAME = C2.REGION
+    AND A1.CITY_NAME = E2.CITY_NAME
+WHERE  A1.SALE_PLATFORM_NAME  = '国内销售平台'
+; 
+
