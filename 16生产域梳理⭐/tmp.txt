@@ -1,0 +1,67 @@
+库存成本表 ADS_INVENTORY_COST ETL流程
+│
+├─ TRUNCATE TABLE (清空表)
+│
+└─ INSERT INTO (三源合并)
+   │
+   ├── 数据源1: EBS系统
+   │  ├── 字段处理:
+   │  │  ├── PERIOD → yperiod
+   │  │  ├── SUBSTR(COMPANY...) → company_name
+   │  │  ├── MATERIAL_TYPE → product_form
+   │  │  └── 成本计算:
+   │  │       ├── 入库成本: CASE WHEN MATERIAL_TYPE=产成品 THEN INWARE_PRODUCT...
+   │  │       └── 留账成本: CASE WHEN MATERIAL_TYPE=产成品 THEN RETAIN_PRODUCT...
+   │  │
+   │  ├── 连接上月数据:
+   │  │  └── ON A.PERIOD = ADD_MONTHS(B.PERIOD,+1)
+   │  │
+   │  └── 分组: GROUP BY PERIOD,COMPANY,MATERIAL_TYPE,PRODUCT_SORT
+   │
+   ├── UNION ALL
+   │
+   ├── 数据源2: 手工系统
+   │  ├── 产成品部分:
+   │  │  ├── 字段转换: to_date(YF,'YY.MM')→yperiod
+   │  │  ├── 单位处理: CASE WHEN GSMC=山东晨晖 THEN '元/台' ELSE '元/吨'
+   │  │  └── 成本字段: RKCB_CCP→storage_cost, LZCB_CCP→retention_cost
+   │  │
+   │  ├── UNION ALL
+   │  │
+   │  ├── 半成品部分:
+   │  │  └── 成本字段: RKCB_BCP→storage_cost, LZCB_BCP→retention_cost
+   │  │
+   │  └── 连接上月数据:
+   │       └── ON to_date(A.YF)=ADD_MONTHS(to_date(B.YF),+1)
+   │
+   ├── UNION ALL
+   │
+   └── 数据源3: U9系统
+      ├── 子查询结构:
+      │  ├── 入库成本部分:
+      │  │  ├── 字段: to_date(PERIOD)→PERIOD
+      │  │  ├── 成本: COST→storage_cost
+      │  │  └── 留账成本置0
+      │  │
+      │  ├── UNION ALL
+      │  │
+      │  └── 留账成本部分:
+      │       ├── 字段: to_date(PERIOD)→PERIOD
+      │       └── 成本: COST→retention_cost
+      │
+      └── 外层分组:
+          └── GROUP BY PERIOD,ORGANIZATION,PRODUCTION,measurement_units,BIGCLASS
+
+│
+├─ COMMIT (提交插入)
+│
+├─ UPDATE 公司简称
+│  └── SET company_name_sn = (SELECT SCXJC FROM ODS_GJZBSCX...)
+│
+├─ 数据清洗 (按公司+产品大类过滤)
+│  ├── DELETE 玫德集团有限公司 → 只保留'玛钢管件'
+│  ├── DELETE 玫德集团临沂有限公司 → 只保留'球铁沟槽管件','钢帽'
+│  ├── DELETE 济南迈克阀门 → 只保留'阀门','阀门铸件','灰铁污水管件'
+│  └── DELETE 玫德艾瓦兹 → 只保留'工业软管','燃气软管','消防软管'
+│
+└─ COMMIT (提交清洗)
