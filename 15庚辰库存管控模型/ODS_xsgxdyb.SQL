@@ -1,0 +1,46 @@
+CREATE TABLE ODS_ERP.ODS_XSGXDYB (
+    ID      NUMBER,                     -- 序号
+    DQ      VARCHAR2(2000),            -- 大区
+    QY      VARCHAR2(2000),            -- 区域
+    YWY     VARCHAR2(2000),            -- 业务员
+    FDQY    VARCHAR2(2000),            -- 风电区域
+    KHMC    VARCHAR2(2000),            -- 客户名称
+    DL      VARCHAR2(2000),            -- 铁号大类
+    FHXH    VARCHAR2(2000),            -- 发货型号
+    KSRQ    DATE,                      -- 开始日期
+    JZRQ    DATE,                      -- 截止日期
+    BZ      VARCHAR2(2000),            -- 备注
+    LRY     VARCHAR2(2000),            -- 录入员
+    GXSJ    DATE,                      -- 更新时间
+    WFHFL   VARCHAR2(2000),            
+    SFXS    VARCHAR2(2000),            
+    CPDL    VARCHAR2(2000),            -- 产品大类
+    CPZL    VARCHAR2(2000),            -- 产品中类
+    CPXL    VARCHAR2(2000),            -- 产品小类
+    CPBM    VARCHAR2(2000),            -- 产品编码
+    CPMC    VARCHAR2(2000)             -- 产品名称
+);
+
+
+
+
+COMMENT ON TABLE ODS_ERP.ODS_XSGXDYB IS '销售关系对应表';
+
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.ID IS '序号';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.DQ IS '大区';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.QY IS '区域';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.YWY IS '业务员';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.FDQY IS '风电区域';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.KHMC IS '客户名称';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.DL IS '铁号大类';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.FHXH IS '发货型号';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.KSRQ IS '开始日期';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.JZRQ IS '截止日期';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.BZ IS '备注';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.LRY IS '录入员';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.GXSJ IS '更新时间';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.CPDL IS '产品大类';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.CPZL IS '产品中类';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.CPXL IS '产品小类';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.CPBM IS '产品编码';
+COMMENT ON COLUMN ODS_ERP.ODS_XSGXDYB.CPMC IS '产品名称';

@@ -47,7 +47,7 @@ CREATE TABLE "MDDWD"."DWD_CNLXDZB"
 
 
 
-truncate table MDDWD.DWD_CNLXDZB
+truncate table MDDWD.DWD_CNLXDZB;
 
 insert into  MDDWD.DWD_CNLXDZB(
    ID , 
@@ -90,7 +90,7 @@ FROM ODS_ERP.ODS_CNLXDZB
 ----------------------------------------------------
 
 
-truncate table MDDWD.DWD_CNJCB
+truncate table MDDWD.DWD_CNJCB;
 
 INSERT INTO MDDWD.DWD_CNJCB(
 
