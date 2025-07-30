@@ -21,7 +21,7 @@ INSERT INTO
         WEIGHT_SAMEP_M_ACTUAL_T, -- 同期重量月度实际_吨
         WEIGHT_SAMEP_Q_ACTUAL_T, -- 同期重量季度实际_吨
         WEIGHT_SAMEP_ACC_ACTUAL_T ,-- 同期重量月累计实际_吨
-MIN_CAPACITY_T
+        MIN_CAPACITY_T
     )
     
  select      PERIOD,  ---日期
@@ -78,7 +78,7 @@ SELECT
     A.PRODUCT_LINE PRODUCTION_NAME , -- PRODUCTION_NAME ,          -- 生产线
     B.CAPACITY_TYPE, -- CAPACITY_TYPE ,            -- 产能类型
     
-   sum(A.WEIGHT_M_TARGET_T) WEIGHT_M_TARGET_T, -- WEIGHT_M_TARGET_T ,               -- 重量月度目标_吨
+    sum(A.WEIGHT_M_TARGET_T) WEIGHT_M_TARGET_T, -- WEIGHT_M_TARGET_T ,               -- 重量月度目标_吨
     sum(A.WEIGHT_M_ACTUAL_T_SAVE + A.WEIGHT_M_ACTUAL_T_UNSAVE) WEIGHT_M_ACTUAL_T,  -- WEIGHT_M_ACTUAL_T ,               -- 重量月度实际_吨
 
     sum(A.WEIGHT_Q_TARGET_T) WEIGHT_Q_TARGET_T,  -- WEIGHT_Q_TARGET_T ,               -- 重量季度目标_吨

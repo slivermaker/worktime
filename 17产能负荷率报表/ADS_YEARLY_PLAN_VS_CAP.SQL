@@ -17,6 +17,7 @@ INSERT INTO ADS_YEARLY_PLAN_VS_CAP(
     ORDER_QTY_OVER_LAST ,              -- 同期月累计国外接单量
     ORDER_QTY_INTER_SUM_LAST ,         -- 去年国内接单量
     ORDER_QTY_OVER_SUM_LAST ,          -- 去年海外接单量
+    is_meets_standard ,                 --是否达标
     ETL_CRT_DT ,
     ETL_UPD_DT 
 
@@ -86,6 +87,12 @@ SELECT
             ELSE 0
         END
     ) AS ORDER_QTY_OVER_SUM_LAST -- 去年国内接单量
+    ,CASE 
+        WHEN (SUM(A.WEIGHT_M_ACC_ACTUAL_T_UNSAVE) < (MAX(C.MIN_CAPACITY_T) * EXTRACT(MONTH FROM ADD_MONTHS(SYSDATE,-1))))
+            OR (SUM(A.WEIGHT_LM_ACTUAL_T_UNSAVE) < MAX(C.MIN_CAPACITY_T) AND SUM(A.WEIGHT_LSM_ACTUAL_T_UNSAVE) < MAX(C.MIN_CAPACITY_T))
+        THEN '否'
+        ELSE '是'
+    END AS IS_MEETS_STANDARD
     ,SYSDATE AS ETL_CRT_DT
     ,SYSDATE AS ETL_UPD_DT
 
