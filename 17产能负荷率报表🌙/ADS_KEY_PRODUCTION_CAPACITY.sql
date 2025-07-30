@@ -23,9 +23,12 @@ INSERT INTO MDADS.ADS_KEY_PRODUCTION_CAPACITY
     ACC_FINISH, -- 累计完成
     ACC_FINISH_SAMEP, -- 累计同期产能
     IS_KEY_FOCUS , -- 是否重点关注
-    ETL_CRT_DT , -- ETL创建时间
+    ETL_CRT_DT , -- ETL创建时间 
     ETL_UPD_DT    -- ETL更新时间
-    
+    ,WEIGHT_M_ACTUAL_T_INTER_UNSAVE--国内重量月度实际_吨_非储备
+    ,WEIGHT_M_ACTUAL_T_OVER_UNSAVE--海外重量月度实际_吨_非储备
+    ,WEIGHT_M_ACTUAL_T_INTER_SAVE--国内重量月度实际_吨_储备
+    ,WEIGHT_M_ACTUAL_T_OVER_SAVE--海外重量月度实际_吨_储备
 )
 SELECT
     PERIOD, -- 日期
@@ -52,6 +55,10 @@ SELECT
     MAX(IS_KEY_FOCUS), -- 是否重点关注
     SYSDATE ETL_CRT_DT, -- ETL创建时间
     SYSDATE ETL_UPD_DT -- ETL更新时间
+    ,SUM(WEIGHT_M_ACTUAL_T_INTER_UNSAVE)--国内重量月度实际_吨_非储备
+    ,SUM(WEIGHT_M_ACTUAL_T_OVER_UNSAVE)--海外重量月度实际_吨_非储备
+    ,SUM(WEIGHT_M_ACTUAL_T_INTER_SAVE)--国内重量月度实际_吨_储备
+    ,SUM(WEIGHT_M_ACTUAL_T_OVER_SAVE)--海外重量月度实际_吨_储备
 FROM (
     -- 生产订单业绩数据
     SELECT
@@ -82,10 +89,15 @@ FROM (
             THEN '是'
             ELSE '否'
         END AS IS_KEY_FOCUS -- 是否重点关注
+        ,SUM(CASE WHEN ORG_NAME1 = '国内销售平台' THEN A.WEIGHT_M_ACTUAL_T_UNSAVE ELSE 0 END) AS WEIGHT_M_ACTUAL_T_INTER_UNSAVE  --国内重量月度实际_吨_非储备
+        ,SUM(CASE WHEN ORG_NAME1 = '海外销售平台' THEN A.WEIGHT_M_ACTUAL_T_UNSAVE ELSE 0 END) AS WEIGHT_M_ACTUAL_T_OVER_UNSAVE  --海外重量月度实际_吨_非储备
+        ,SUM(CASE WHEN ORG_NAME1 = '国内销售平台' THEN A.WEIGHT_M_ACTUAL_T_SAVE ELSE 0 END) AS WEIGHT_M_ACTUAL_T_INTER_SAVE  --国内重量月度实际_吨_储备
+        ,SUM(CASE WHEN ORG_NAME1 = '海外销售平台' THEN A.WEIGHT_M_ACTUAL_T_SAVE ELSE 0 END) AS WEIGHT_M_ACTUAL_T_OVER_SAVE  --海外重量月度实际_吨_储备
     FROM MDDWS.DWS_PRODUCT_ORDER_REVENUE A
     LEFT JOIN MDDWD.DWD_CNJCB C 
         ON A.PRODUCT_LINE = C.PRODUCTION_LINE
         AND a.CAPACITY_TYPE = C.CAPACITY_TYPE
+    WHERE   A.ORG_NAME1 IN ('国内销售平台','海外销售平台')
     
     UNION ALL
     
@@ -113,6 +125,10 @@ FROM (
         0 ACC_FINISH,
         0 ACC_FINISH_SAMEP,
         NULL IS_KEY_FOCUS
+        ,0 AS WEIGHT_M_ACTUAL_T_INTER_UNSAVE--国内重量月度实际_吨_非储备
+        ,0 AS WEIGHT_M_ACTUAL_T_OVER_UNSAVE--海外重量月度实际_吨_非储备
+        ,0 AS WEIGHT_M_ACTUAL_T_INTER_SAVE--国内重量月度实际_吨_储备
+        ,0 AS WEIGHT_M_ACTUAL_T_OVER_SAVE--海外重量月度实际_吨_储备
     FROM (
         SELECT
             CASE
