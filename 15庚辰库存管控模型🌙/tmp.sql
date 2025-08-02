@@ -1,27 +1,10 @@
-        TRUNC(a.PERIOD, 'mm') PERIOD, -- 日期
-        A.PRODUCT_LINE AS PRODUCTION_NAME, -- 生产线
-        a.CAPACITY_TYPE, -- 产能类型
-        C.MONTHLY_CAPACITY, -- 月产能
-        C.MIN_CAPACITY_RATE, -- 最低产能负荷率
-        C.UNIT AS MEASUREMENT_NAME, -- 计量单位
-        0 WEIGHT_M_SHIP_T, -- 重量月度发货_吨
-        0 WEIGHT_M_SHIP_T_LAST, -- 重量上月发货_吨
-        0 WEIGHT_M_SHIP_T_SAMEP, -- 重量同期发货_吨
-        0 WEIGHT_M_SHIP_TAR_T, -- 重量月度目标_吨
-        A.WEIGHT_M_TARGET_T, -- 重量月度目标_吨_不含储备
-        A.WEIGHT_M_ACTUAL_T_UNSAVE AS WEIGHT_M_ACTUAL_T, -- 重量月度实际_吨_不含储备
-        A.WEIGHT_LM_ACTUAL_T_UNSAVE AS WEIGHT_LAST_M_ACTUAL_T, -- 重量上月实际_吨_不含储备
-        A.WEIGHT_SAMEP_M_TARGET_T AS WEIGHT_M_SAMEP_T, -- 重量本月同期_吨_不含储备
-        A.WEIGHT_M_TARGET_T AS WEIGHT_M_TARGET_T_ALL, -- 重量月度目标_吨_含储备
-        A.WEIGHT_M_ACTUAL_T_SAVE + A.WEIGHT_M_ACTUAL_T_UNSAVE AS WEIGHT_M_ACTUAL_T_ALL, -- 重量月度实际_吨_含储备
-        A.WEIGHT_LM_ACTUAL_T_SAVE + A.WEIGHT_LM_ACTUAL_T_UNSAVE AS WEIGHT_LAST_M_ACTUAL_T_ALL, -- 重量上月实际_吨_含储备
-        A.WEIGHT_SAMEP_M_ACTUAL_T_SAVE + A.WEIGHT_SAMEP_M_ACTUAL_T_UNSAVE AS WEIGHT_M_SAMEP_T_ALL, -- 重量本月同期_吨_含储备
-        C.MONTHLY_CAPACITY * EXTRACT(MONTH FROM ADD_MONTHS(SYSDATE, -1)) ACC_CAPACITY, -- 累计产能
-        A.WEIGHT_M_ACC_ACTUAL_T_UNSAVE ACC_FINISH, -- 累计完成
-        A.WEIGHT_SAMEP_MACC_ACT_T_UNSAVE ACC_FINISH_SAMEP, -- 累计同期产能
-        CASE
-            WHEN (A.WEIGHT_M_ACC_ACTUAL_T_UNSAVE < (C.MIN_CAPACITY_T * EXTRACT(MONTH FROM ADD_MONTHS(SYSDATE, -1))))
-            OR (A.WEIGHT_LM_ACTUAL_T_UNSAVE < C.MIN_CAPACITY_T AND A.WEIGHT_LSM_ACTUAL_T_UNSAVE < C.MIN_CAPACITY_T) 
-            THEN '是'
-            ELSE '否'
-        END AS IS_KEY_FOCUS -- 是否重点关注
+    ID,   
+    PRODUCT_TPYE_SC,               -- 产品类型
+    PRODUCT_CODE,               -- 产品编码
+    INVENTORY_RATIO,              -- 库存占比
+    SALES_ACTIVITY_RATIO,              -- 动销率
+    stock_floor,              -- 库存下限
+    stock_ceiling,              -- 库存上限
+    remark,              -- 备注
+    LRY,               -- 录入人
+    update_time                           -- 更新时间（日期时间）

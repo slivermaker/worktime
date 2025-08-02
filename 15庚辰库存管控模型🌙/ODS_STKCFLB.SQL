@@ -10,3 +10,20 @@ CREATE TABLE ODS_ERP.ODS_STKCFLB (
     LRY    VARCHAR2(2000),               -- 录入人
     GXSJ   DATE                        -- 更新时间（日期时间）
 );
+
+
+
+
+UPDATE ODS_ERP.ODS_STKCFLB T
+SET 
+    KCZB = COALESCE(KCZB, (
+        SELECT KCZB 
+        FROM ODS_ERP.ODS_STKCFLB A 
+        WHERE A.CPLX = T.CPLX AND A.KCZB IS NOT NULL
+    )),
+    DXL = COALESCE(DXL, (
+        SELECT DXL
+        FROM ODS_ERP.ODS_STKCFLB A 
+        WHERE A.CPLX = T.CPLX AND A.DXL IS NOT NULL
+    ))
+WHERE KCZB IS NULL OR DXL IS NULL;
