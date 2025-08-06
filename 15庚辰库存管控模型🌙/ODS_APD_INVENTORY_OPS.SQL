@@ -2,7 +2,7 @@ CREATE TABLE ODS_APD_INVENTORY_OPS_GC(
 
     PERIOD  DATE      
     ,ERROR_TYPE VARCHAR2(2000) CHECK (
-        ERROR_TYPE IN ('库存结构', '安全库存', '动销率')
+        ERROR_TYPE IN ('库存结构维度', '安全库存维度', '动销率维度')
     )
     ,ERROR_CONTENT VARCHAR2(4000)
     ,SOLUTION_CONTENT VARCHAR2(4000)

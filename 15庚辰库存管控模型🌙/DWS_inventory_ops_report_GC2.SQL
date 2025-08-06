@@ -52,9 +52,9 @@ INSERT INTO MDDWS.DWS_INVENTORY_OPS_BEGIN(
     PERIOD ,                              -- 日期
     PRODUCT_TYPE_SC ,          -- 产品类型
     PRODUCT_CODE ,             -- 产品编码
-    BEGINNING_INVENTORY ,              -- 月出库量
-    SAMEP_MONTH_INVENTORY ,          -- 同期出库量
-    LAST_MONTH_INVENTORY             -- 上月出库量
+    BEGINNING_INVENTORY ,              
+    SAMEP_MONTH_INVENTORY ,          
+    LAST_MONTH_INVENTORY             
 
 )
 

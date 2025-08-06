@@ -52,9 +52,9 @@ INSERT INTO MDDWS.DWS_INVENTORY_OPS_RK(
     PERIOD ,                              -- 日期
     PRODUCT_TYPE_SC           -- 产品类型
     PRODUCT_CODE ,             -- 产品编码
-    MONTHLY_IN_QUANTITY ,              -- 月出库量
-    SAMEP_MONTH_IN_QUANTITY ,          -- 同期出库量
-    LAST_MONTH_IN_QUANTITY             -- 上月出库量
+    MONTHLY_IN_QUANTITY ,              
+    SAMEP_MONTH_IN_QUANTITY ,          
+    LAST_MONTH_IN_QUANTITY              
 
 )
 
@@ -63,11 +63,11 @@ WITH TMP AS (
         TRUNC(TO_DATE(D.RQ,'YY.MM.DD')+1,'MM') AS PERIOD_DATE,
         A.PRODUCT_TYPE_SC,
         A.PRODUCT_CODE,
-        SUM(D.ZL) AS MONTHLY_IN_QUANTITY
+        SUM(D.ZL)/1000 AS MONTHLY_IN_QUANTITY
     FROM 
         MDDWD.DWD_STKCFLB A
         LEFT JOIN ODS_ERP2013.ODS_TPC_BZRKB D
-        ON A.PRODUCT_CODE = (CASE WHEN D.GG IS NULL OR D.GG='' THEN D.PZ ELSE D.PZ ||'_'|| D.GG END)  
+        ON A.PRODUCT_CODE = (CASE WHEN D.GG IS NULL OR D.GG='' THEN D.PZ ELSE D.PZ ||'_'|| D.GG END)  AND A.PERIOD=D.TRUNC(TO_DATE(D.RQ,'YY.MM.DD')+1,'MM')
     WHERE
         A.PRODUCT_CODE IN (
             SELECT PRODUCT_CODE

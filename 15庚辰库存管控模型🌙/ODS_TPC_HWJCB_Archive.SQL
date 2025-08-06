@@ -1,0 +1,61 @@
+SELECT
+    ckbm,
+    ckmc,
+    jhq,
+    ddh,
+    fhdh,
+    khm,
+    pz,
+    gg,
+    xs,
+    hwh,
+    zjc,
+    tzlq,
+    lq,
+    py,
+    pk,
+    zc,
+    tzzc,
+    jjc,
+    ddxfjs,
+    yxhwjc,
+    gxsj
+FROM MDGCYW2024.DBO.TPC_HWJCB2401
+
+
+
+
+-- 创建表语句
+CREATE TABLE ODS_ERP2013.ODS_TPC_HWJCB_ALL (
+    PERIOD DATE,
+    CB VARCHAR2(2000),
+    CKMC VARCHAR2(2000),
+    LY VARCHAR2(2000),
+    CZ VARCHAR2(2000),
+    CPXL VARCHAR2(2000),
+    DDFS VARCHAR2(2000),
+    HWH VARCHAR2(2000),
+    DDH VARCHAR2(2000),
+    FHDH VARCHAR2(2000),
+    PZ VARCHAR2(2000),
+    GG VARCHAR2(2000),
+    XS VARCHAR2(2000),
+    XJS NUMBER,
+    ZJC NUMBER,
+    LQ NUMBER,
+    TZLQ NUMBER,
+    ZC NUMBER,
+    TZZC NUMBER,
+    JJC NUMBER,
+    JJCX NUMBER,
+    SJ NUMBER,
+    PY NUMBER,
+    PK NUMBER,
+    DZ NUMBER,
+    ZL NUMBER,
+    YXHWJC NUMBER,
+    GXSJ DATE,
+    JHQ VARCHAR2(2000),
+    ETL_CRT_DT DATE,
+    ETL_UPD_DT DATE
+);

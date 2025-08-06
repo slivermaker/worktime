@@ -1,0 +1,25 @@
+CREATE TABLE MDADS.ADS_TPC_BZRKB (
+    ID NUMBER,  --序号
+    RKBM VARCHAR2(2000),--入库编码
+    RKDW VARCHAR2(2000),--入库单位
+    CKBM VARCHAR2(2000),--领取编码
+    CKMC VARCHAR2(2000),--领取单位
+    DDH VARCHAR2(2000),--订单号
+    BC VARCHAR2(2000),--班次
+    JHQ VARCHAR2(2000),--交货期
+    KHM VARCHAR2(2000),--客户名
+    PZ VARCHAR2(2000),--品种
+    GG VARCHAR2(2000),--规格
+    ZL NUMBER,--重量T
+    LH VARCHAR2(2000),--炉号
+    LQHWH VARCHAR2(2000),--领取货位号
+    CH VARCHAR2(2000),--车号
+    TSGH VARCHAR2(300),--铁水罐号
+    ZTJH VARCHAR2(300),--铸铁机号
+    DJLSH VARCHAR2(2000),--单据流水号
+    LRFSYY VARCHAR2(2000),--录入负数原因
+    LRY VARCHAR2(2000),--录入员
+    GXSJ DATE,--更新时间
+    ETL_CRT_DT DATE,
+    ETL_UPD_DT DATE
+);

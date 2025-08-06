@@ -1,0 +1,27 @@
+-- 创建表语句
+CREATE TABLE ODS_ERP2013.ODS_TPC_HWJCB_ALL (
+    PERIOD DATE,
+    ckbm VARCHAR2 (2000),
+    ckmc VARCHAR2 (2000),
+    jhq VARCHAR2 (2000),
+    ddh VARCHAR2 (2000),
+    fhdh VARCHAR2 (2000),
+    khm VARCHAR2 (2000),
+    pz VARCHAR2 (2000),
+    gg VARCHAR2 (2000),
+    xs VARCHAR2 (2000),
+    hwh VARCHAR2 (2000),
+    zjc NUMBER,
+    tzlq NUMBER,
+    lq NUMBER,
+    py NUMBER,
+    pk NUMBER,
+    zc NUMBER,
+    tzzc NUMBER,
+    jjc NUMBER,
+    ddxfjs NUMBER,
+    yxhwjc NUMBER,
+    GXSJ DATE,
+    ETL_CRT_DT DATE,
+    ETL_UPD_DT DATE
+);
