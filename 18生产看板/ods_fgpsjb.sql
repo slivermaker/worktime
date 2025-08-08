@@ -1,0 +1,96 @@
+FGPSJB
+
+
+CREATE TABLE ODS_ERP.ODS_FGPSJB (
+    ID NUMBER,                          -- 序号
+    RQ VARCHAR2(2000),                  -- 日期
+    TFPBM VARCHAR2(2000),               -- 退废品编码
+    TFPDW VARCHAR2(2000),               -- 退废品单位
+    ZFKBM VARCHAR2(2000),               -- 支罚款编码
+    ZFKDW VARCHAR2(2000),               -- 支罚款单位
+    LXBS VARCHAR2(2000),                -- 类型标示
+    FPLX VARCHAR2(2000),                -- 废品类型
+    PZ VARCHAR2(2000),                  -- 品种
+    GG VARCHAR2(2000),                  -- 规格
+    XS VARCHAR2(2000),                  -- 形式
+    DZ NUMBER,                          -- 单重
+    JS NUMBER,                          -- 件数
+    LRY VARCHAR2(2000),                 -- 录入员
+    GXSJ DATE,                          -- 更新时间
+    ZJGH VARCHAR2(2000),                -- 质检工号
+    ZJGXM VARCHAR2(2000),               -- 质检工姓名
+    CZZDM VARCHAR2(2000),               -- 操作者代码
+    FKBM1 VARCHAR2(2000),               -- 罚款编码1
+    FKDW1 VARCHAR2(2000),               -- 罚款单位1
+    LCH VARCHAR2(2000),                 -- 炉次号
+    BC VARCHAR2(2000),                  -- 班次
+    JH VARCHAR2(2000),                  -- 件号
+    CZFL VARCHAR2(2000),                -- 材质分类
+    BMCL VARCHAR2(2000),                -- 表面处理
+    SCGY VARCHAR2(2000),                -- 生产工艺
+    SCX VARCHAR2(2000),                 -- 生产线
+    SPDJ NUMBER,                        -- 索赔单价
+    SPE NUMBER,                         -- 索赔额
+    DJGXBZ VARCHAR2(2000),              -- 单价更新备注
+    BZ VARCHAR2(2000),                  -- 班组
+    ZFDW VARCHAR2(2000),                -- 支付单位
+    KJ NUMBER,                          -- 口径
+    ZLCZFL VARCHAR2(2000),               -- 质量材质分类
+    TFPGX VARCHAR2(2000),               -- 退废品工序
+    FPSSE NUMBER,                       -- 废品损失额
+    GDH VARCHAR2(2000),                  -- 工单号
+    KBH VARCHAR2(2000),                 -- 看板号
+    ZJBID NUMBER,                      
+    SJLY VARCHAR2(2000),                -- 数据来源
+    CPBM VARCHAR2(2000),                -- 产品编码
+    ETL_CRT_DT DATE,                    -- ETL创建时间
+    ETL_UPD_DT DATE                     -- ETL更新时间
+);
+
+-- 表注释
+COMMENT ON TABLE ODS_ERP.ODS_FGPSJB IS '退废品管理表';
+
+-- 字段注释
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ID IS '序号';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.RQ IS '日期';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.TFPBM IS '退废品编码';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.TFPDW IS '退废品单位';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ZFKBM IS '支罚款编码';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ZFKDW IS '支罚款单位';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.LXBS IS '类型标示';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.FPLX IS '废品类型';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.PZ IS '品种';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.GG IS '规格';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.XS IS '形式';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.DZ IS '单重';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.JS IS '件数';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.LRY IS '录入员';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.GXSJ IS '更新时间';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ZJGH IS '质检工号';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ZJGXM IS '质检工姓名';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.CZZDM IS '操作者代码';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.FKBM1 IS '罚款编码1';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.FKDW1 IS '罚款单位1';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.LCH IS '炉次号';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.BC IS '班次';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.JH IS '件号';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.CZFL IS '材质分类';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.BMCL IS '表面处理';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.SCGY IS '生产工艺';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.SCX IS '生产线';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.SPDJ IS '索赔单价';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.SPE IS '索赔额';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.DJGXBZ IS '单价更新备注';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.BZ IS '班组';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ZFDW IS '支付单位';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.KJ IS '口径';
+
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ZLCZFL IS '质量材质分类';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.TFPGX IS '退废品工序';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.FPSSE IS '废品损失额';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.GDH IS '工单号';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.KBH IS '看板号';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.SJLY IS '数据来源';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.CPBM IS '产品编码';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ETL_CRT_DT IS 'ETL创建时间';
+COMMENT ON COLUMN ODS_ERP.ODS_FGPSJB.ETL_UPD_DT IS 'ETL更新时间';
