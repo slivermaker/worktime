@@ -1,0 +1,39 @@
+
+WITH TMP AS (
+    SELECT 
+        B.PERIOD,
+        A.PRODUCT_TYPE_SC,
+        A.PRODUCT_CODE,
+        SUM(B.zc)/1000 AS MONTHLY_OUT_QUANTITY
+    FROM 
+        MDDWD.DWD_STKCFLB A
+        LEFT JOIN MDDWD.DWD_TPC_HWJCB B
+        ON A.PRODUCT_CODE = (CASE WHEN B.PRODUCT_SPECIFICATION IS NULL OR B.PRODUCT_SPECIFICATION='' 
+                               THEN B.PRODUCT_VARIETY 
+                               ELSE B.PRODUCT_VARIETY ||'_'|| B.PRODUCT_SPECIFICATION END)  
+    WHERE
+        A.PRODUCT_CODE IN (
+            SELECT PRODUCT_CODE
+            FROM MDDWD.DWD_XSGXDYB C
+            WHERE
+                C.PRODUCT_SORT1 = '球铁'
+                AND C.START_TIME <= SYSDATE
+                AND C.END_TIME >= SYSDATE
+        )
+    GROUP BY 
+        B.PERIOD,
+        A.PRODUCT_TYPE_SC,
+        A.PRODUCT_CODE
+)
+
+
+
+SELECT 
+    PERIOD,                         ---日期
+    PRODUCT_TYPE_SC,                --产品类型
+    PRODUCT_CODE,                   --产品编码
+    MONTHLY_OUT_QUANTITY,            --月出库量   
+    LAG(MONTHLY_OUT_QUANTITY, 12) OVER (PARTITION BY PRODUCT_TYPE_SC, PRODUCT_CODE ORDER BY PERIOD) AS SAMEP_MONTH_OUT_QUANTITY, --同期出库量
+    LAG(MONTHLY_OUT_QUANTITY, 1) OVER (PARTITION BY PRODUCT_TYPE_SC, PRODUCT_CODE ORDER BY PERIOD) AS LAST_MONTH_OUT_QUANTITY       --上月出库量
+FROM TMP
+
