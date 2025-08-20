@@ -37,6 +37,20 @@ COMMENT ON COLUMN MDADS.ADS_INVENTORY_OPS_ANALYSIS.MONTHLY_OUT_QUANTITY IS '当�
 COMMENT ON COLUMN MDADS.ADS_INVENTORY_OPS_ANALYSIS.SAMEP_MONTH_OUT_QUANTITY IS '同期出库量';
 COMMENT ON COLUMN MDADS.ADS_INVENTORY_OPS_ANALYSIS.LAST_MONTH_OUT_QUANTITY IS '上月出库量';
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 TRUNCATE TABLE MDADS.ADS_INVENTORY_OPS_ANALYSIS;
 
 INSERT INTO MDADS.ADS_INVENTORY_OPS_ANALYSIS (
@@ -47,8 +61,6 @@ INSERT INTO MDADS.ADS_INVENTORY_OPS_ANALYSIS (
     STOCK_FLOOR,                          -- 库存下限
     STOCK_CEILING,                        -- 库存上限
     SALES_ACTIVITY_RATIO,                 -- 动销率
-    SALES_ACTIVITY_RATIO_LAST,            -- 上月动销率
-    SALES_ACTIVITY_RATIO_SAMEP,           -- 同期动销率
     BEGINNING_INVENTORY,                  -- 期初库存
     SAMEP_MONTH_INVENTORY,                -- 上年同月期初结存量
     LAST_MONTH_INVENTORY,                 -- 上月期初结存量
@@ -57,7 +69,12 @@ INSERT INTO MDADS.ADS_INVENTORY_OPS_ANALYSIS (
     LAST_MONTH_IN_QUANTITY,               -- 上月入库
     MONTHLY_OUT_QUANTITY,                 -- 月出库
     SAMEP_MONTH_OUT_QUANTITY,             -- 同期出库
-    LAST_MONTH_OUT_QUANTITY               -- 上月出库
+    LAST_MONTH_OUT_QUANTITY,               -- 上月出库
+    ending_inventory ,                     --
+    samep_month_end_inventory ,
+    last_month_end_inventory ,
+    START_DATE,
+    END_DATE
 )
 
 SELECT
@@ -68,8 +85,6 @@ SELECT
     ,A.STOCK_FLOOR                   --库存下限
     ,A.STOCK_CEILING                      --库存上限
     ,A.SALES_ACTIVITY_RATIO             ---动销率
-    ,A.SALES_ACTIVITY_RATIO_LAST        --上月动销率
-    ,A.SALES_ACTIVITY_RATIO_SAMEP       --同期动销率
     ,C.BEGINNING_INVENTORY               --期初库存
     ,C.SAMEP_MONTH_INVENTORY            --上年同月期初结存量
     ,C.LAST_MONTH_INVENTORY             --上月期初结存量
@@ -79,16 +94,23 @@ SELECT
     ,E.MONTHLY_OUT_QUANTITY                 --月出库
     ,E.SAMEP_MONTH_OUT_QUANTITY             --同期出库
     ,E.LAST_MONTH_OUT_QUANTITY              --上月出库
+    ,F.ending_inventory 
+    ,F.samep_month_end_inventory 
+    ,F.last_month_end_inventory 
+    ,A.START_DATE
+    ,A.END_DATE
 
 
 FROM
     MDDWD.DWD_STKCFLB A
     LEFT JOIN  MDDWS.DWS_INVENTORY_OPS_BEGIN C --期初结存
-        ON A.PERIOD=C.PERIOD AND A.PRODUCT_CODE=C.PRODUCT_CODE
+        ON A.PERIOD=C.PERIOD AND A.PRODUCT_CODE=C.PRODUCT_CODE AND C.PERIOD BETWEEN A.START_DATE AND A.END_DATE
     LEFT JOIN MDDWS.DWS_INVENTORY_OPS_RK D--月入库量
-        on A.PERIOD=D.PERIOD_DATE AND A.PRODUCT_CODE=D.PRODUCT_CODE
+        on A.PERIOD=D.PERIOD_DATE AND A.PRODUCT_CODE=D.PRODUCT_CODE AND D.PERIOD_DATE BETWEEN A.START_DATE AND A.END_DATE
     LEFT JOIN MDDWS.DWS_INVENTORY_OPS_CK E--月出库量
-        on A.PERIOD=E.PERIOD AND A.PRODUCT_CODE=E.PRODUCT_CODE
+        on A.PERIOD=E.PERIOD AND A.PRODUCT_CODE=E.PRODUCT_CODE AND E.PERIOD BETWEEN A.START_DATE AND A.END_DATE
+    LEFT JOIN MDDWS.DWS_INVENTORY_OPS_END F--期末结存
+         on A.PERIOD=F.PERIOD AND A.PRODUCT_CODE=F.PRODUCT_CODE AND F.PERIOD BETWEEN A.START_DATE AND A.END_DATE
 WHERE
     A.PERIOD > DATE '2023-12-1'
     AND A.PERIOD < SYSDATE
