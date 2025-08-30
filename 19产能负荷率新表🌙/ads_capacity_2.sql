@@ -118,6 +118,7 @@ INSERT INTO ADS_CAPACITY_2 (
     etl_upd_dt                 -- ETL更新日期
 
 )
+
 SELECT
     A.period --日期
     ,A.PRODUCE_COMPANY_NAME_SN--生产公司
