@@ -93,7 +93,6 @@ OUT_AMOUNT_M_TARGET_WY--金额月度目标
 OUT_AMOUNT_M_ACC_ACTUAL_WY--金额月累计实际
 OUT_AMOUNT_M_ACC_TARGET_WY--金额月累计目标
 
-
 INSERT INTO ADS_CAPACITY_2 (
     period,                     -- 日期
     produce_company_name_sn,    -- 生产公司
@@ -183,6 +182,7 @@ LEFT JOIN (
         AND (ASR.IS_MONTH = '是' OR ASR.IS_DAY = '是')
         AND SALES_TARGET_TYPE = '挑战目标'
         --AND WEIGHT_M_ACTUAL_T + WEIGHT_M_TARGET_T + WEIGHT_M_SAMEP_T <> 0
+		
     GROUP BY    TRUNC(PERIOD, 'MM'),
             CORPORATE_ENTITY_NAME_SN,
             product_sort1,
@@ -194,3 +194,5 @@ ON  B.PERIOD = A.PERIOD
     AND B.PRODUCT_SORT1 = A.PRODUCT_SORT1
     AND B.PRODUCT_SORT2 = A.PRODUCT_SORT2
     AND B.PRODUCT_SORT3 = A.PRODUCT_SORT3
+
+WHERE  A.period<trunc(SYSDATE,'DD')
