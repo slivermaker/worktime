@@ -1,0 +1,47 @@
+CREATE TABLE ODS_DDTQZRBMJCK (
+    ID NUMBER,                              -- 序号
+    TQYJZZ VARCHAR2(2000),                 -- 拖期一级组织
+    TQLB VARCHAR2(2000),                   -- 拖期类别
+    BMLX VARCHAR2(2000),                   -- 部门类型
+    SCX VARCHAR2(2000),                    -- 生产线
+    CQ VARCHAR2(2000),                     -- 厂区
+    ZRDW VARCHAR2(2000),                   -- 责任单位
+    XYYWKSFZR VARCHAR2(2000),              -- 相应业务科室负责人
+    CQJHKSCB VARCHAR2(2000),               -- 厂区计划科生产部
+    CZZJ VARCHAR2(2000),                   -- 厂长总监
+    ZZBZJLZC VARCHAR2(2000),               -- 制造部总经理总裁
+    SCGLKFZR VARCHAR2(2000),               -- 生产管理科负责人
+    ZZR VARCHAR2(2000),                    -- 责任人
+    QSSJ VARCHAR2(2000),                   -- 起始时间
+    JZSJ VARCHAR2(2000),                   -- 截止时间
+    LRY VARCHAR2(2000),                    -- 录入员
+    GXSJ DATE,                             -- 更新时间
+    CCGLKFZR VARCHAR2(2000),               -- 仓储管理科负责人
+    YJZZZC VARCHAR2(2000),                 -- 所有责任单位一级组织总裁
+    ETL_CRT_DT DATE,                       -- ETL创建时间
+    ETL_UPD_DT DATE                        -- ETL更新时间
+);
+
+COMMENT ON TABLE ODS_DDTQZRBMJCK IS '订单拖期责任部门基础表';
+
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.ID IS '序号';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.TQYJZZ IS '拖期一级组织';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.TQLB IS '拖期类别';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.BMLX IS '部门类型';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.SCX IS '生产线';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.CQ IS '厂区';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.ZRDW IS '责任单位';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.XYYWKSFZR IS '相应业务科室负责人';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.CQJHKSCB IS '厂区计划科生产部';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.CZZJ IS '厂长总监';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.ZZBZJLZC IS '制造部总经理总裁';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.SCGLKFZR IS '生产管理科负责人';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.ZZR IS '责任人';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.QSSJ IS '起始时间';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.JZSJ IS '截止时间';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.LRY IS '录入员';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.GXSJ IS '更新时间';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.CCGLKFZR IS '仓储管理科负责人';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.YJZZZC IS '所有责任单位一级组织总裁';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.ETL_CRT_DT IS 'ETL创建时间';
+COMMENT ON COLUMN ODS_DDTQZRBMJCK.ETL_UPD_DT IS 'ETL更新时间';
