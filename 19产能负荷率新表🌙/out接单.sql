@@ -112,7 +112,34 @@ SELECT A.period ,
 ------------------------------------------------------------
 
 
-    SELECT A.PERIOD_DAY,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SELECT A.PERIOD_DAY,
           c.PRODUCTION_LINE,
        A.ORDER_CODE,
        A.PRODUCT_SPECIFICATION,
@@ -168,7 +195,7 @@ SELECT A.period ,
  ------------------------------------
  SELECT A.period , 
        c.production_line,
-       A.PRODUCT_LINE，
+       A.PRODUCT_LINE,
        A.ORDER_CODE,
        a.ITEM_CATE as 品种,
        a. ITEM_SPEC as 规格,
@@ -211,7 +238,7 @@ SELECT A.period ,
        a.ITEM_CATE,
        a. ITEM_SPEC,
        a.ITEM_STYLE,
-       A.PRODUCT_LINE，
+       A.PRODUCT_LINE,
        A.PRODUCT_SORT1,
        A.PRODUCT_SORT2,
        A.PRODUCT_SORT3,
