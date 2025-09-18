@@ -116,11 +116,11 @@ FROM
   R_TRANSFORMATION t
 LEFT JOIN 
   R_JOBENTRY j ON (
-    j.ID_TRANSFORMATION = t.ID_TRANSFORMATION  -- 关键：关联转换ID
-    AND j.TYPE = 'TRANS'                       -- 类型为调用转换的步骤
+    j.ID_TRANSFORMATION = t.ID_TRANSFORMATION  
+    AND j.TYPE = 'TRANS'                      
   )
 WHERE 
-  j.ID_JOB IS NULL  -- 注意：7.0 作业步骤表可能无ID_JOBENTRY字段
+  j.ID_JOB IS NULL 
 ORDER BY 
   t.NAME;
 

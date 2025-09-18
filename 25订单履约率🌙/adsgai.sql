@@ -1,0 +1,99 @@
+WITH RN AS (
+    SELECT 
+        NVL(TRUNC(ASSESSMENT_DATE,'MM'),TRUNC(DELIVERY_DATE,'MM')) AS PERIOD ,
+        ASSESSMENT_DATE,
+        PRODUCTION_LINE,
+        FACTORY,
+        DELIVERY_DATE,
+        DELAY_DAYS,
+        DELAY_TYPE,
+        DELAY_COUNT,
+        DEPT_RESPONSIBLE_PERSON,
+        PLANNING_DEPARTMENT,
+        FACTORY_DIRECTOR,
+        MANUFACTURE_DIRECTOR,
+        PRODUCTION_MANAGER,
+        OTHER_RESPONSIBLE_PERSON,
+        DEDUCTION_AMOUNT,
+        IS_EXCEPTION,
+        IS_PUSHED,
+        INPUT_PERSON,
+        UPDATE_TIME,
+        WAREHOUSE_MANAGER,
+        TOP_LEVEL_DIRECTOR,
+        PACKING_CONFIRM_DATE,
+        PACKING_CHANGE_REASON,
+        ORDER_DELAY_REASON,
+        ADJUSTED_DELIVERY_DATE,
+        DELAY_REASON,
+        DEPARTMENT_TYPE
+
+    FROM (
+        SELECT 
+            T.*,
+            ROW_NUMBER() OVER (
+                PARTITION BY ORDER_ID, TRUNC(ASSESSMENT_DATE,'MM') 
+                ORDER BY ASSESSMENT_DATE DESC,ID DESC
+            ) AS RN        FROM MDDWD.DWD_DDTQKHHZB T where  delay_type is not null
+    )
+    WHERE RN = 1 AND TRUNC(ASSESSMENT_DATE,'MM')=TRUNC(DELIVERY_DATE,'MM')
+    AND DELAY_TYPE IN (
+        SELECT DISTINCT TQLB FROM ODS_ERP.ODS_DDTQZRBMJCK
+    )
+ 	AND (
+		--DELAY_TYPE IS NULL OR
+          (DELAY_TYPE NOT LIKE '%剔除%'
+          AND DELAY_TYPE !='漏收托'
+          AND DELAY_TYPE !='晚核销')
+        ) 
+
+)
+
+
+    SELECT
+        A.PERIOD_DATE AS PERIOD,
+        A.SCX,
+        A.CQ,
+        SUM(
+            CASE 
+                WHEN DELAY_DAYS>0 THEN 1
+                ELSE 0
+            END
+        ) AS DELAY_CNT
+    ,    SUM(
+            CASE
+                WHEN DELAY_DAYS BETWEEN 3 AND 6
+                AND DEPARTMENT_TYPE IN (select distinct tqlb from ODS_ERP.ODS_DDTQZRBMJCK where bmlx='生产') THEN 1
+                ELSE 0
+            END
+        ) AS DELAY_3_6_PRODUCTION --订单拖期3-6天（生产）
+    ,    SUM(
+            CASE
+                WHEN DELAY_DAYS >= 7
+                AND DEPARTMENT_TYPE IN (select distinct tqlb from ODS_ERP.ODS_DDTQZRBMJCK where bmlx='生产') THEN 1
+                ELSE 0
+            END
+        ) AS DELAY_OVER_7_PRODUCTION --订单拖期7天以上（生产）
+    ,    SUM(
+            CASE
+                WHEN DELAY_DAYS BETWEEN 3 AND 6
+                AND (DEPARTMENT_TYPE NOT IN (select distinct tqlb from ODS_ERP.ODS_DDTQZRBMJCK where bmlx='生产') OR DEPARTMENT_TYPE IS NULL) THEN 1
+                ELSE 0
+            END
+        ) AS DELAY_3_6_NON_PRODUCTION --订单拖期3-6天（非生产）
+    ,    SUM(
+            CASE
+                WHEN DELAY_DAYS >= 7
+                AND (DEPARTMENT_TYPE NOT IN (select distinct tqlb from ODS_ERP.ODS_DDTQZRBMJCK where bmlx='生产') OR DEPARTMENT_TYPE IS NULL) THEN 1
+                ELSE 0
+            END
+        ) AS DELAY_OVER_7_NON_PRODUCTION --订单拖期7天以上（非生产）
+     ,SYSDATE,SYSDATE
+    FROM MDDWD.DWD_LYLCQJCK A
+        LEFT JOIN RN B ON A.SCX = B.PRODUCTION_LINE
+        AND A.CQ = B.FACTORY
+        AND A.PERIOD_DATE=B.PERIOD
+    GROUP BY A.SCX,A.CQ,A.PERIOD_DATE
+
+
+

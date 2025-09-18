@@ -1,0 +1,5 @@
+select kbid,a.zh 单位,a.ddh, a.pz,a.gg,a.xs,a.czfl,a.bmcl,a.gb,max(a.gxsj) 更新时间,js 件数,b.dz 单重
+from odserp.ods_fmzpmxb a
+left join qtkblsb b on a.kbid = b.id  
+where gb in('成套','质检') 
+group by kbid,a.zh,a.ddh, a.pz,a.gg,a.xs,a.czfl,a.bmcl,a.gb ,js,dz

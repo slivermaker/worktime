@@ -1,34 +1,128 @@
--- 创建表
-CREATE TABLE ads_capacity_1 (
-    PERIOD DATE,
-    produce_company_name_sn VARCHAR2(2000),
-    production_line VARCHAR2(2000),
-    capacity_type VARCHAR2(2000),
-    working_days NUMBER,
-    year_capacity NUMBER,
-    unit VARCHAR2(2000),
-    in_sale_begin NUMBER,
-    over_sale_begin NUMBER,
-    in_sale_mid NUMBER,
-    over_sale_mid NUMBER,
-    ETL_CRT_DT DATE,
-    ETL_UPD_DT DATE
-);
+BEGIN
+IF EXTRACT(MONTH FROM SYSDATE) IN ('1', '7') THEN
+  
 
--- 添加表注释
-COMMENT ON TABLE ads_capacity_1 IS '年度目标和产能对比表';
+EXECUTE IMMEDIATE 'TRUNCATE TABLE MDADS.ADS_CAPACITY_1';
+INSERT INTO MDADS.ADS_CAPACITY_1
+(
+    PERIOD
+    ,PRODUCE_COMPANY_NAME_SN
+    ,PRODUCTION_LINE
+    ,CAPACITY_TYPE
+    ,WORKING_DAYS
+    ,MONTHLY_CAPACITY
+    ,YEAR_CAPACITY
+    ,UNIT
+    ,IN_SALE_BEGIN
+    ,OVER_SALE_BEGIN
+    ,IN_SALE_MID
+    ,OVER_SALE_MID
+    ,ETL_CRT_DT
+    ,ETL_UPD_DT
 
--- 添加列注释
-COMMENT ON COLUMN ads_capacity_1.PERIOD IS '日期';
-COMMENT ON COLUMN ads_capacity_1.produce_company_name_sn IS '生产公司';
-COMMENT ON COLUMN ads_capacity_1.production_line IS '生产线';
-COMMENT ON COLUMN ads_capacity_1.capacity_type IS '产能类型';
-COMMENT ON COLUMN ads_capacity_1.working_days IS '月生产天数';
-COMMENT ON COLUMN ads_capacity_1.year_capacity IS '年产能';
-COMMENT ON COLUMN ads_capacity_1.unit IS '计量单位';
-COMMENT ON COLUMN ads_capacity_1.in_sale_begin IS '国内年初销量目标';
-COMMENT ON COLUMN ads_capacity_1.over_sale_begin IS '海外年初销量目标';
-COMMENT ON COLUMN ads_capacity_1.in_sale_mid IS '国内年中销量目标';
-COMMENT ON COLUMN ads_capacity_1.over_sale_mid IS '海外年中销量目标';
-COMMENT ON COLUMN ads_capacity_1.ETL_CRT_DT IS 'ETL创建日期';
-COMMENT ON COLUMN ads_capacity_1.ETL_UPD_DT IS 'ETL更新日期';
+)
+WITH MIN_DT AS (
+    SELECT  SALE_PLATFORM_NAME
+            ,TRUNC(MIN(CASE WHEN TO_CHAR(ETL_CRT_DT, 'MM') >= '01' AND TO_CHAR(ETL_CRT_DT, 'MM') <= '06' THEN ETL_CRT_DT END)) AS BEG_YEAR
+            ,TRUNC(MIN(CASE WHEN TO_CHAR(ETL_CRT_DT, 'MM') >= '07' AND TO_CHAR(ETL_CRT_DT, 'MM') <= '12' THEN ETL_CRT_DT END)) AS MID_YEAR
+    FROM    ODS_APD.ODS_APD_SALES_TARGET
+    WHERE   INDEX_TYPE = '收入'
+        AND SALES_TARGET_TYPE = '挑战'
+        AND SALE_PLATFORM_NAME IN ('国内销售平台', '海外销售平台')
+        AND YEAR = TO_CHAR(TRUNC(SYSDATE, 'YYYY'), 'YYYY')
+    GROUP BY    SALE_PLATFORM_NAME
+)
+,
+TAR AS (
+    SELECT  ST.CORPORATE_ENTITY_NAME_SN
+            ,ST.PRODUCT_SORT1
+            ,ST.PRODUCT_SORT2
+            ,ST.PRODUCT_SORT3
+            ,SUM(CASE WHEN ST.SALE_PLATFORM_NAME = '国内销售平台' THEN ST.ANNUAL_TARGET_TON ELSE 0 END) AS SALE_TARGET_TON_GN_BEG
+            ,SUM(CASE WHEN ST.SALE_PLATFORM_NAME = '海外销售平台' THEN ST.ANNUAL_TARGET_TON ELSE 0 END) AS SALE_TARGET_TON_HW_BEG
+            ,0 AS SALE_TARGET_TON_GN_MID
+            ,0 AS SALE_TARGET_TON_HW_MID
+    FROM    MIN_DT
+    LEFT JOIN   ODS_APD.ODS_APD_SALES_TARGET    ST
+    ON  MIN_DT.BEG_YEAR = TRUNC(ST.ETL_CRT_DT)
+        AND ST.SALE_PLATFORM_NAME = MIN_DT.SALE_PLATFORM_NAME
+        AND ST.YEAR = TO_CHAR(TRUNC(SYSDATE, 'YYYY'), 'YYYY')
+    WHERE INDEX_TYPE = '收入'
+    AND SALES_TARGET_TYPE = '挑战'
+    GROUP BY    ST.CORPORATE_ENTITY_NAME_SN
+                ,ST.PRODUCT_SORT1
+                ,ST.PRODUCT_SORT2
+                ,ST.PRODUCT_SORT3
+
+    UNION ALL
+
+    SELECT  ST.CORPORATE_ENTITY_NAME_SN
+            ,ST.PRODUCT_SORT1
+            ,ST.PRODUCT_SORT2
+            ,ST.PRODUCT_SORT3
+            ,0 AS SALE_TARGET_TON_GN_BEG
+            ,0 AS SALE_TARGET_TON_HW_BEG
+            ,SUM(CASE WHEN ST.SALE_PLATFORM_NAME = '国内销售平台' THEN ST.ANNUAL_TARGET_TON ELSE 0 END) AS SALE_TARGET_TON_GN_MID
+            ,SUM(CASE WHEN ST.SALE_PLATFORM_NAME = '海外销售平台' THEN ST.ANNUAL_TARGET_TON ELSE 0 END) AS SALE_TARGET_TON_HW_MID
+    FROM    MIN_DT
+    LEFT JOIN   ODS_APD.ODS_APD_SALES_TARGET    ST
+    ON  MIN_DT.MID_YEAR = TRUNC(ST.ETL_CRT_DT)
+        AND ST.SALE_PLATFORM_NAME = MIN_DT.SALE_PLATFORM_NAME
+        AND ST.YEAR = TO_CHAR(TRUNC(SYSDATE, 'YYYY'), 'YYYY')
+    WHERE INDEX_TYPE = '收入'
+    AND SALES_TARGET_TYPE = '挑战'
+    GROUP BY    ST.CORPORATE_ENTITY_NAME_SN
+                ,ST.PRODUCT_SORT1
+                ,ST.PRODUCT_SORT2
+                ,ST.PRODUCT_SORT3
+)
+SELECT  TRUNC(SYSDATE, 'YYYY')
+        ,DCA.PRODUCE_COMPANY_NAME_SN
+        ,DCA.PRODUCTION_LINE
+        ,DCA.CAPACITY_TYPE
+        ,max(DCA.WORKING_DAYS)
+        ,max(DCA.MONTHLY_CAPACITY)
+        ,max(DCA.MONTHLY_CAPACITY * 12)
+        ,DCA.UNIT
+        ,sum(TAR.SALE_TARGET_TON_GN_BEG)
+        ,sum(TAR.SALE_TARGET_TON_HW_BEG)
+        ,sum(TAR.SALE_TARGET_TON_GN_MID)
+        ,sum(TAR.SALE_TARGET_TON_HW_MID)
+        ,SYSDATE
+        ,SYSDATE
+FROM    (
+    SELECT  DISTINCT
+            PRODUCE_COMPANY_NAME_SN
+            ,PRODUCTION_LINE
+            ,CAPACITY_TYPE
+            ,PRODUCT_SORT1
+            ,PRODUCT_SORT2
+            ,PRODUCT_SORT3
+            ,WORKING_DAYS
+            ,MONTHLY_CAPACITY
+            ,UNIT
+    FROM    MDDWS.DWS_CAPACITY_ALL
+    WHERE   TRUNC(PERIOD, 'MM') = TRUNC(SYSDATE, 'YYYY')  --只取今年第一个月的数据（全部且唯一）
+    AND PRODUCTION_LINE NOT IN ('金润德','泰国达美','越南对焊管件')
+)                                       DCA
+LEFT JOIN   TAR
+ON  TAR.CORPORATE_ENTITY_NAME_SN = DCA.PRODUCE_COMPANY_NAME_SN
+    AND TAR.PRODUCT_SORT1 = DCA.PRODUCT_SORT1
+    AND TAR.PRODUCT_SORT2 = DCA.PRODUCT_SORT2
+    AND TAR.PRODUCT_SORT3 = DCA.PRODUCT_SORT3
+group by DCA.PRODUCE_COMPANY_NAME_SN
+        ,DCA.PRODUCTION_LINE
+        ,DCA.CAPACITY_TYPE
+        ,DCA.UNIT
+
+;
+COMMIT;
+
+END IF;
+END;
+
+
+
+
+
+
