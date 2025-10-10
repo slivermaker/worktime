@@ -14,36 +14,25 @@ INSERT INTO DWD_WEIGHT_PIECE_BIKB (
     UNIT_WEIGHT
 )
 SELECT 
-    KBID,
-    TO_DATE(A.RQ,'MM.YY.DD') AS PERIOD,
-    A.ZH AS GROUP_ID,
-    A.DDH AS ORDER_ID,
-    A.PZ AS PRODUCT_VARIETY,
-    A.GG AS PRODUCT_FORM,
-    A.XS AS PRODUCT_SPECIFICATION,
-    A.CZFL AS PRODUCT_TEXTURE,
-    A.BMCL AS SURFACE_TREATMENT,
-    A.GB AS PROCESS_STEP,
-    MAX(A.GXSJ) AS UPDATE_TIME,
-    JS AS CNT,
-    B.NWGT AS UNIT_WEIGHT
-FROM ODS_FMZPMXB A
-LEFT JOIN ODS_ERP.ODS_INVITEM B
-    ON A.PZ = B.TYPE2
-    AND A.GG = B.TYPE3
-    AND A.XS = B.TYPE4
-    AND A.CZFL = B.CZFL
-    AND A.BMCL = B.BMCL
-WHERE A.GB IN ('成套','质检')
-GROUP BY 
-    KBID,
-    A.ZH,
-    A.DDH,
-    A.PZ,
-    A.GG,
-    A.XS,
-    A.CZFL,
-    A.BMCL,
-    A.GB,
-    JS,
-    NWGT;
+    kbid,
+    to_date(a.rq,'YY.MM.DD') as period,
+    a.zh as group_id,
+    a.ddh as order_id,
+    a.pz as PRODUCT_VARIETY,
+    a.gg as PRODUCT_FORM,
+    a.xs as PRODUCT_SPECIFICATION,
+    a.czfl as PRODUCT_TEXTURE,
+    a.bmcl as SURFACE_TREATMENT,
+    a.gb as process_step,
+    --max(a.gxsj) as update_time,
+    A.GXSJ,
+    js as cnt,
+    b.nwgt as unit_weight
+FROM ods_erp.ods_fmzpmxb a
+LEFT JOIN ods_erp.ods_invitem b
+    ON a.pz = b.type2
+    AND a.gg = b.type3
+    AND a.xs = b.type4
+    AND a.czfl = b.czfl
+    AND a.bmcl = b.bmcl
+WHERE a.gb IN ('成套','质检') and a.dw='蝶阀止回阀装配线'

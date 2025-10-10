@@ -8,39 +8,37 @@ INSERT INTO ADS_WEIGHT_PIECE_RANK_BIKB (
     WEIGHT_RANK_DESC,
     WEIGHT_RANK_ASC
 )
-WITH NEWDATE AS (   
-    SELECT MAX(TRUNC(PERIOD,'MM')) AS MAX_DATE FROM MDDWD.DWD_WEIGHT_PIECE_BIKB
-),
-LATESTMONTHDATA AS (
+
+LatestMonthData AS (
     SELECT 
-        PERIOD,
-        GROUP_ID,
-        CNT,
+        period,
+        group_id,
+        cnt,
         UNIT_WEIGHT,
-        CNT * UNIT_WEIGHT AS TOTAL_WEIGHT
-    FROM MDDWD.DWD_WEIGHT_PIECE_BIKB
-    WHERE TRUNC(PERIOD, 'MM') = (SELECT MAX_DATE FROM NEWDATE)
+        cnt * UNIT_WEIGHT as total_weight
+    FROM MDDWD.dwd_weight_piece_bikb
+    WHERE TRUNC(period, 'MM') >=TRUNC(SYSADTE-1,MM)
 ),
-SUM_WP AS (
+sum_wp AS (
     SELECT
-        GROUP_ID,
-        SUM(CNT) AS TOTAL_CNT,
-        SUM(CNT * UNIT_WEIGHT) AS TOTAL_WEIGHT
-    FROM LATESTMONTHDATA
-    GROUP BY GROUP_ID
+        group_id,
+        SUM(cnt) AS total_cnt,
+        SUM(cnt * UNIT_WEIGHT) AS total_weight
+    FROM LatestMonthData
+    GROUP BY group_id
 )
 SELECT
-    GROUP_ID,
-    TOTAL_CNT,
-    TOTAL_WEIGHT,
+    group_id,
+    total_cnt,
+    total_weight,
     -- 件数正排名（从高到低）
-    RANK() OVER (ORDER BY TOTAL_CNT DESC) AS CNT_RANK_DESC,
+    RANK() OVER (ORDER BY total_cnt DESC) AS cnt_rank_desc,
     -- 件数倒排名（从低到高）
-    RANK() OVER (ORDER BY TOTAL_CNT ASC) AS CNT_RANK_ASC,
+    RANK() OVER (ORDER BY total_cnt ASC) AS cnt_rank_asc,
     -- 重量正排名（从高到低）
-    RANK() OVER (ORDER BY TOTAL_WEIGHT DESC) AS WEIGHT_RANK_DESC,
+    RANK() OVER (ORDER BY total_weight DESC) AS weight_rank_desc,
     -- 重量倒排名（从低到高）
-    RANK() OVER (ORDER BY TOTAL_WEIGHT ASC) AS WEIGHT_RANK_ASC
-FROM SUM_WP
-WHERE GROUP_ID IS NOT NULL
-ORDER BY TOTAL_CNT DESC;
+    RANK() OVER (ORDER BY total_weight ASC) AS weight_rank_asc
+FROM sum_wp
+WHERE group_id IS NOT NULL
+ORDER BY total_cnt DESC;

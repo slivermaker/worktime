@@ -11,18 +11,20 @@
  SELECT distinct DELIVERY_ORG FROM CRM_SO_ORDER_HEADER 
 
 
-SELECT 
-    a.org_id
-    ,b.org_name  
+SELECT DISTINCT  A.CUSTOMER_ID,a.order_num,B.COMPANY_REGISTER_NAME
 FROM CRM_SO_ORDER_HEADER A 
---left join mddim.dim_org_d b on a.org_id=b.org_id
-where 
-    a.org_id in(19,20,97) --得一  卓睿  香港
+LEFT JOIN ODS_CRM_CTM_CUST_INTRODUCE B 
+     ON A.CUSTOMER_ID=B.CUSTOMER_ID
+left join ods_erp.ODS_SOCTRL_TG C
+     ON C.DDH=A.ORDER_NUM
+WHERE 
+     a.org_id in(19,20,97) --得一  卓睿  香港
     AND A.DELIVERY_ORG =1112--68_泰钢管配件2402
-    AND A.STATUS=             --订单状态
-    AND A.DELIVERY_REQUEST=   --发货状态？
-    AND A.ORDER_TYPE_ID=      --订单类型
+    AND A.STATUS=  'C'           --订单状态
     AND A.IS_INTERNATIONAL_TRADE='Y' --外销
-    
+    AND A.ORDER_TYPE_ID= 1000580     --订单类型
+    AND A.DELIVERY_REQUEST IS NULL --发货状态？
 
 
+
+转产：1T1  1s2  1s3  1t9 19e  
