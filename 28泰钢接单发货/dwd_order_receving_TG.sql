@@ -1,0 +1,1 @@
+SELECT ddh,khjc,fsigndate as period ,TOTALNW,FJZ FROM ods_soctrl_tg

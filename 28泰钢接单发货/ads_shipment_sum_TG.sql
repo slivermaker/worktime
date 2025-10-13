@@ -17,3 +17,55 @@ COMMENT ON COLUMN ADS_SHIPMENT_SUM_TG.OUT_WEIGHT_T IS '外销重量';
 COMMENT ON COLUMN ADS_SHIPMENT_SUM_TG.SHIP_WGT_T_SAMEP IS '上月同期累计发货';
 COMMENT ON COLUMN ADS_SHIPMENT_SUM_TG.ETL_CRT_DT IS 'ETL创建日期';
 COMMENT ON COLUMN ADS_SHIPMENT_SUM_TG.ETL_UPD_DT IS 'ETL更新日期';
+
+
+
+iNSERT INTO MDADS.ADS_SHIPMENT_SUM_TG (
+    PERIOD,
+    PRODUCT_NAME,
+    SALE_TYPE,
+    WEIGHT_T,
+    SHIP_WGT_T_ACC_MONTH
+
+)
+WITH TMP_DWD AS (
+  SELECT 
+       A.PERIOD_DAY as period,
+       --A.ORDER_CODE,
+       CASE WHEN A.CUSTOMER_COUNTRY='泰国' THEN '内销' else '外销' end as sale_type,
+       B.CZBZ as TEXTURE_type,
+       A.SALES_WEIGHT_KG as weight_kg
+  FROM mddwd.DWD_SALE_REVENUE A 
+       LEFT JOIN MDDIM.DIM_ORDER_TO_TEXTURE B
+       ON SUBSTR(A.ORDER_CODE,1,3)=B.DDQZ
+  WHERE CORPORATE_ENTITY_NAME_SN='泰钢管配件'  
+  AND A.ORDER_CODE IS NOT NULL
+  AND B.LX='fhcz'
+),
+tmp_dws as (
+SELECT 
+    period,
+    sale_type,
+    texture_type,
+    SUM(weight_kg) / 1000 AS weight_t,
+    SUM(SUM(weight_kg) / 1000) OVER (
+        PARTITION BY 
+            EXTRACT(YEAR FROM period),
+            EXTRACT(MONTH FROM period),
+            sale_type,
+            texture_type
+        ORDER BY period
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS SHIP_WGT_T_ACC_month
+FROM tmp_dwd
+GROUP BY 
+    period,
+    sale_type,
+    texture_type
+)
+  select period,
+         TEXTURE_TYPE,
+         SALE_TYPE,
+         WEIGHT_T,
+         SHIP_WGT_T_ACC_month
+FROM TMP_DWS
