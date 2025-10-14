@@ -40,8 +40,9 @@ INSERT INTO MDADS.ADS_ORDER_RECEIVE_SUMMARY_TG (
 WITH tmp_dwd AS (
     SELECT 
         TRUNC(A.fsigndate, 'DD') AS PERIOD,
+         ADD_MONTHS(TRUNC(A.fsigndate, 'DD'), -1) AS LAST_MONTH_SAME_DAY,
         A.KHJC AS CUSTOMER_NAME,
-        CASE WHEN A.fjz = '1' THEN '精装' ELSE '散装' END AS PACKAGING_TYPE,
+        CASE WHEN (A.fjz = '1' or a.khjc='丛德贸易') THEN '精装' ELSE '散装' END AS PACKAGING_TYPE,
         B.CZBZ AS PRODUCT_NAME,
         A.TOTALNW AS WEIGHT_KG
     FROM ods_erp.ODS_SOCTRL_TG A
@@ -82,4 +83,68 @@ GROUP BY
     CUSTOMER_NAME,
     EXTRACT(YEAR FROM PERIOD),
     EXTRACT(MONTH FROM PERIOD)
+
+--------------------------------------------------------------------\
+
+WITH tmp_dwd AS (
+    SELECT 
+        TRUNC(A.fsigndate, 'DD') AS PERIOD,
+        ADD_MONTHS(TRUNC(A.fsigndate, 'DD'), -1) AS LAST_MONTH_SAME_DAY,
+        A.KHJC AS CUSTOMER_NAME,
+        CASE WHEN (A.fjz = '1' or a.khjc='丛德贸易') THEN '精装' ELSE '散装' END AS PACKAGING_TYPE,
+        B.CZBZ AS PRODUCT_NAME,
+        A.TOTALNW AS WEIGHT_KG
+    FROM ods_erp.ODS_SOCTRL_TG A
+    LEFT JOIN MDDIM.DIM_ORDER_TO_TEXTURE B
+        ON SUBSTR(A.DDH, 1, 3) = B.DDQZ
+    WHERE B.LX = 'jdcz'
+),
+
+-- 计算每个月从1号到当前日期的累计数据
+month_to_date AS (
+    SELECT
+        PRODUCT_NAME,
+        TRUNC(PERIOD, 'MM') AS MONTH_START,
+        PACKAGING_TYPE,
+        CUSTOMER_NAME,
+        SUM(WEIGHT_KG) / 1000 AS MONTH_TO_DATE_WEIGHT_T
+    FROM tmp_dwd
+    WHERE PERIOD BETWEEN TRUNC(PERIOD, 'MM') AND TRUNC(SYSDATE, 'DD')
+      AND EXTRACT(DAY FROM PERIOD) <= EXTRACT(DAY FROM SYSDATE)
+    GROUP BY 
+        PRODUCT_NAME,
+        TRUNC(PERIOD, 'MM'),
+        PACKAGING_TYPE,
+        CUSTOMER_NAME
+)
+
+SELECT
+    t.PRODUCT_NAME,
+    t.PERIOD,
+    t.PACKAGING_TYPE,
+    t.CUSTOMER_NAME,
+    SUM(t.WEIGHT_KG) / 1000 AS WEIGHT_T,
+    m.MONTH_TO_DATE_WEIGHT_T AS LAST_MONTH_CUMULATIVE_WEIGHT_T,
+    SUM(SUM(t.WEIGHT_KG) / 1000) OVER (
+        PARTITION BY 
+            t.PRODUCT_NAME,
+            t.PACKAGING_TYPE,
+            t.CUSTOMER_NAME,
+            EXTRACT(YEAR FROM t.PERIOD)
+        ORDER BY t.PERIOD
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS YEARLY_CUMULATIVE_WEIGHT_T
+FROM tmp_dwd t
+LEFT JOIN month_to_date m ON 
+    t.PRODUCT_NAME = m.PRODUCT_NAME AND
+    add_months(TRUNC(t.PERIOD, 'MM'),-1) = m.MONTH_START AND
+    t.PACKAGING_TYPE = m.PACKAGING_TYPE AND
+    t.CUSTOMER_NAME = m.CUSTOMER_NAME
+GROUP BY 
+    t.PRODUCT_NAME,
+    t.PERIOD,
+    t.PACKAGING_TYPE,
+    t.CUSTOMER_NAME,
+    m.MONTH_TO_DATE_WEIGHT_T,
+    EXTRACT(YEAR FROM t.PERIOD)
 
