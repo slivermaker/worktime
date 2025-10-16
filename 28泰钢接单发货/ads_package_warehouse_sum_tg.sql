@@ -1,176 +1,178 @@
 
-truncate table ads_package_warehouse_sum_tg
-INSERT INTO ads_package_warehouse_sum_tg (
-    period,
-    warehousing_type,
-    group_name,
-    warehousing_weight_t,
-    fine_packaging_cnt,
-    fine_packaging_wgt_T
+TRUNCATE TABLE ADS_PACKAGE_WAREHOUSE_SUM_TG
+INSERT INTO ADS_PACKAGE_WAREHOUSE_SUM_TG (
+    PERIOD,
+    WAREHOUSING_TYPE,
+    GROUP_NAME,
+    WAREHOUSING_WEIGHT_T,
+    FINE_PACKAGING_CNT,
+    FINE_PACKAGING_WGT_T
 
 )
 
-with all_to_one as (
-     select ddh ,
-            case when KHJC='丛德贸易' then '1' else fjz end as isjbz,
-            fbuynum AS jbz_cnt ,
-            TOTALNW as jbz_wgt
-            from  ods_erp.ods_soctrl_tg
+WITH ALL_TO_ONE AS (
+     SELECT DDH ,
+            CASE WHEN KHJC='丛德贸易' THEN '1' ELSE FJZ END AS ISJBZ,
+            FBUYNUM AS JBZ_CNT ,
+            TOTALNW AS JBZ_WGT
+            FROM  ODS_ERP.ODS_SOCTRL_TG
 )
-,order_clean as (
-            select 
-               to_date(rq,'YY.MM.DD') as period,
-               ddh,
-               rkdw,
-               sum(zl) as zl
-            from ods_erp.ODS_BZRKB_TG
+,ORDER_CLEAN AS (
+            SELECT 
+               TO_DATE(RQ,'YY.MM.DD') AS PERIOD,
+               DDH,
+               RKDW,
+               SUM(ZL) AS ZL
+            FROM ODS_ERP.ODS_BZRKB_TG
             WHERE RQ NOT LIKE'  %'
-            group by ddh,rkdw,to_date(rq,'YY.MM.DD')
+            GROUP BY DDH,RKDW,TO_DATE(RQ,'YY.MM.DD')
             
 )
 
---select count(*),ddh from order_clean group by ddh
-select 
-      a.PERIOD,
+--SELECT COUNT(*),DDH FROM ORDER_CLEAN GROUP BY DDH
+SELECT 
+      A.PERIOD,
       C.RKCZ,
-      a.rkdw,
-      sum(a.zl)/1000,
-      --max(b.isjbz),
-      sum(case when b.isjbz='1' then b.jbz_cnt else 0 end) as fine_packaging_cnt,
-      sum(case when b.isjbz='1'then b.jbz_wgt else 0 end)/1000 as fine_packaging_wgt_T
-from order_clean A 
-     left join all_to_one b on a.ddh=b.ddh 
+      A.RKDW,
+      SUM(A.ZL)/1000,
+      --MAX(B.ISJBZ),
+      SUM(CASE WHEN B.ISJBZ='1' THEN B.JBZ_CNT ELSE 0 END) AS FINE_PACKAGING_CNT,
+      SUM(CASE WHEN B.ISJBZ='1'THEN B.JBZ_WGT ELSE 0 END)/1000 AS FINE_PACKAGING_WGT_T
+FROM ORDER_CLEAN A 
+     LEFT JOIN ALL_TO_ONE B ON A.DDH=B.DDH 
      LEFT JOIN MDDIM.DIM_GROUP_TO_TYPE_TG C  ON C.BZDW=A.RKDW
-group by a.period,C.RKCZ,a.rkdw
+GROUP BY A.PERIOD,C.RKCZ,A.RKDW
 
 
 
 ----------------------------------------------------------------------------------------------------
 
 
-CREATE TABLE ads_package_warehouse_sum_tg (
-    period DATE,
-    warehousing_type VARCHAR2(2000),
-    group_name VARCHAR2(2000),
-    warehousing_weight_t NUMBER,
-    fine_packaging_cnt NUMBER,
-    fine_packaging_wgt_T NUMBER,
-    etl_crt_dt DATE DEFAULT SYSDATE,
-    etl_upd_dt DATE DEFAULT SYSDATE
+CREATE TABLE ADS_PACKAGE_WAREHOUSE_SUM_TG (
+    PERIOD DATE,
+    WAREHOUSING_TYPE VARCHAR2(2000),
+    GROUP_NAME VARCHAR2(2000),
+    WAREHOUSING_WEIGHT_T NUMBER,
+    FINE_PACKAGING_CNT NUMBER,
+    FINE_PACKAGING_WGT_T NUMBER,
+    ETL_CRT_DT DATE DEFAULT SYSDATE,
+    ETL_UPD_DT DATE DEFAULT SYSDATE
 );
 
-COMMENT ON TABLE ads_package_warehouse_sum_tg IS '包装入库汇总表';
+COMMENT ON TABLE ADS_PACKAGE_WAREHOUSE_SUM_TG IS '包装入库汇总表';
 
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.period IS '日期';
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.warehousing_type IS '入库材质';
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.group_name IS '入库单位';
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.warehousing_weight_t IS '入库重量';
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.fine_packaging_cnt IS '精装件数';
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.fine_packaging_wgt_T IS '精装吨位';
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.etl_crt_dt IS 'ETL创建日期';
-COMMENT ON COLUMN ads_package_warehouse_sum_tg.etl_upd_dt IS 'ETL更新日期';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.PERIOD IS '日期';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.WAREHOUSING_TYPE IS '入库材质';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.GROUP_NAME IS '入库单位';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.WAREHOUSING_WEIGHT_T IS '入库重量';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.FINE_PACKAGING_CNT IS '精装件数';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.FINE_PACKAGING_WGT_T IS '精装吨位';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.ETL_CRT_DT IS 'ETL创建日期';
+COMMENT ON COLUMN ADS_PACKAGE_WAREHOUSE_SUM_TG.ETL_UPD_DT IS 'ETL更新日期';
 
 
 ----------------------------------------------------------------20251013
 
-INSERT INTO ads_package_warehouse_sum_tg (
-    period,
-    warehousing_type,
-    group_name,
-    warehousing_weight_t,
-    fine_packaging_cnt,
-    fine_packaging_wgt_T
+INSERT INTO ADS_PACKAGE_WAREHOUSE_SUM_TG (
+    PERIOD,
+    WAREHOUSING_TYPE,
+    GROUP_NAME,
+    WAREHOUSING_WEIGHT_T,
+    FINE_PACKAGING_CNT,
+    FINE_PACKAGING_WGT_T
 
 )
-with all_to_one as (
-     select ddh ,
-            case when KHJC='丛德贸易' then '1' else fjz end as isjbz,
-            fbuynum AS jbz_cnt ,
-            TOTALNW as jbz_wgt
-            from  ods_erp.ods_soctrl_tg
+WITH ALL_TO_ONE AS (
+     SELECT DDH ,
+            CASE WHEN KHJC='丛德贸易' THEN '1' ELSE FJZ END AS ISJBZ,
+            FBUYNUM AS JBZ_CNT ,
+            TOTALNW AS JBZ_WGT
+            FROM  ODS_ERP.ODS_SOCTRL_TG
 )
-,order_clean as (
-            select 
-               to_date(rq,'YY.MM.DD') as period,
-               ddh,
-               rkdw,
-               sum(js) as js,
-               sum(zl) as zl
-            from ods_erp.ODS_BZRKB_TG
+,ORDER_CLEAN AS (
+            SELECT 
+               TO_DATE(RQ,'YY.MM.DD') AS PERIOD,
+               DDH,
+               RKDW,
+               SUM(JS) AS JS,
+               SUM(ZL) AS ZL
+            FROM ODS_ERP.ODS_BZRKB_TG
             WHERE RQ NOT LIKE'  %'
-            group by ddh,rkdw,to_date(rq,'YY.MM.DD')
+            GROUP BY DDH,RKDW,TO_DATE(RQ,'YY.MM.DD')
             
             
 )
 
-select 
-      a.PERIOD,
+SELECT 
+      A.PERIOD,
       C.RKCZ,
-      a.rkdw,
-      sum(a.zl)/1000,
-      sum(case when (b.isjbz='1' and d.ddqz is not null) then a.js else 0 end) as fine_packaging_cnt,
-      sum(case when (b.isjbz='1' and d.ddqz is not null) then a.zl else 0 end)/1000 as fine_packaging_wgt_T
-from order_clean A 
-     left join all_to_one b on a.ddh=b.ddh 
+      A.RKDW,
+      SUM(A.ZL)/1000,
+      SUM(CASE WHEN (B.ISJBZ='1' AND D.DDQZ IS NOT NULL) THEN A.JS ELSE 0 END) AS FINE_PACKAGING_CNT,
+      SUM(CASE WHEN (B.ISJBZ='1' AND D.DDQZ IS NOT NULL) THEN A.ZL ELSE 0 END)/1000 AS FINE_PACKAGING_WGT_T
+FROM ORDER_CLEAN A 
+     LEFT JOIN ALL_TO_ONE B ON A.DDH=B.DDH 
      LEFT JOIN MDDIM.DIM_GROUP_TO_TYPE_TG C  ON C.BZDW=A.RKDW
-     left join (
-        select 
-        ddqz
-        from MDDIM.DIM_ORDER_TO_TEXTURE
-        WHERE LX='bz'
-     ) d  ON SUBSTR(A.DDH, 1, 3) = d.DDQZ
+     LEFT JOIN (
+        SELECT 
+        DDQZ
+        FROM MDDIM.DIM_ORDER_TO_TEXTURE
+        WHERE LX='BZ'
+     ) D  ON SUBSTR(A.DDH, 1, 3) = D.DDQZ
 
-group by a.period,C.RKCZ,a.rkdw
+GROUP BY A.PERIOD,C.RKCZ,A.RKDW
 
 
 
 ---------------------------------------------------------20251013
 
-INSERT INTO ads_package_warehouse_sum_tg (
-    period,
-    warehousing_type,
-    group_name,
-    warehousing_weight_t,
-    fine_packaging_cnt,
-    fine_packaging_wgt_T
+
+
+TRUNCATE TABLE ADS_PACKAGE_WAREHOUSE_SUM_TG 
+INSERT INTO ADS_PACKAGE_WAREHOUSE_SUM_TG (
+    PERIOD,
+    WAREHOUSING_TYPE,
+    GROUP_NAME,
+    WAREHOUSING_WEIGHT_T,
+    FINE_PACKAGING_CNT,
+    FINE_PACKAGING_WGT_T
 
 )
-with all_to_one as (
-     select ddh ,
-            case when KHJC='丛德贸易' then '1' else fjz end as isjbz,
-            fbuynum AS jbz_cnt ,
-            TOTALNW as jbz_wgt
-            from  ods_erp.ods_soctrl_tg
+WITH ALL_TO_ONE AS (
+     SELECT DDH ,
+            CASE WHEN KHJC='丛德贸易' THEN '1' ELSE FJZ END AS ISJBZ,
+            FBUYNUM AS JBZ_CNT ,
+            TOTALNW AS JBZ_WGT
+            FROM  ODS_ERP.ODS_SOCTRL_TG
 )
-,order_clean as (
-            select 
-               to_date(rq,'YY.MM.DD') as period,
-               ddh,
-               rkdw,
-               sum(case when KHXSH<0  then js*-1 else js end ) as js,
-               sum(case when KHXSH<0 then zl*-1 else zl end) as zl
-            from ods_erp.ODS_BZRKB_TG
+,ORDER_CLEAN AS (
+            SELECT 
+               TO_DATE(RQ,'YY.MM.DD') AS PERIOD,
+               DDH,
+               RKDW,
+               SUM(CASE WHEN KHXSH<0 AND DDH='内销' THEN JS*-1 ELSE JS END ) AS JS,
+               SUM(CASE WHEN KHXSH<0 AND DDH='内销' THEN ZL*-1 ELSE ZL END) AS ZL
+            FROM ODS_ERP.ODS_BZRKB_TG
             WHERE RQ NOT LIKE'  %'
-            group by ddh,rkdw,to_date(rq,'YY.MM.DD')
+            GROUP BY DDH,RKDW,TO_DATE(RQ,'YY.MM.DD')
             
             
 )
 
-select 
-      a.PERIOD,
+SELECT 
+      A.PERIOD,
       C.RKCZ,
-      a.rkdw,
-      sum(a.zl)/1000,
-      sum(case when (b.isjbz='1' and d.ddqz is not null) then a.js else 0 end) as fine_packaging_cnt,
-      sum(case when (b.isjbz='1' and d.ddqz is not null) then a.zl else 0 end)/1000 as fine_packaging_wgt_T
-from order_clean A 
-     left join all_to_one b on a.ddh=b.ddh 
+      A.RKDW,
+      SUM(A.ZL)/1000,
+      SUM(CASE WHEN (B.ISJBZ='1' AND D.DDQZ IS NOT NULL) THEN A.JS ELSE 0 END) AS FINE_PACKAGING_CNT,
+      SUM(CASE WHEN (B.ISJBZ='1' AND D.DDQZ IS NOT NULL) THEN A.ZL ELSE 0 END)/1000 AS FINE_PACKAGING_WGT_T
+FROM ORDER_CLEAN A 
+     LEFT JOIN ALL_TO_ONE B ON A.DDH=B.DDH 
      LEFT JOIN MDDIM.DIM_GROUP_TO_TYPE_TG C  ON C.BZDW=A.RKDW
-     left join (
-        select 
-        ddqz
-        from MDDIM.DIM_ORDER_TO_TEXTURE
-        WHERE LX='bz'
-     ) d  ON SUBSTR(A.DDH, 1, 3) = d.DDQZ
---where a.period >=date'2025-10-7' and a.rkdw='泰钢包装一线B1'
-group by a.period,C.RKCZ,a.rkdw
+     LEFT JOIN (
+        SELECT 
+        DDQZ
+        FROM MDDIM.DIM_ORDER_TO_TEXTURE
+        WHERE LX='BZ'
+     ) D  ON SUBSTR(A.DDH, 1, 3) = D.DDQZ
+GROUP BY A.PERIOD,C.RKCZ,A.RKDW

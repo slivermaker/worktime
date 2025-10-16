@@ -67,42 +67,42 @@ UNION ALL
       =-----------------------------------------------------------------------------20251014
 
       
-INSERT INTO MDADS.ads_management_sum_tg(
+INSERT INTO MDADS.ADS_MANAGEMENT_SUM_TG(
 PERIOD,
-WEIGHT_t,
+WEIGHT_T,
 MANAGEMENT_TYPE
 )
-with rk as (
-     select period,
-            sum(case when WAREHOUSING_TYPE!='玛钢转产' then  WAREHOUSING_WEIGHT_T else 0 end) AS WEIGHT_T,
-            '入库' as type
-            from mdads.ads_package_warehouse_sum_tg group by period
-),fh as(
-select period,
-       SUM(weight_t)AS WEIGHT_T,
-       '发货' as type
-       from MDADS.ADS_SHIPMENT_SUM_TG
-       group by period
-), jd as(
-   select period ,
+WITH RK AS (
+     SELECT PERIOD,
+            SUM(CASE WHEN WAREHOUSING_TYPE!='玛钢转产' THEN  WAREHOUSING_WEIGHT_T ELSE 0 END) AS WEIGHT_T,
+            '入库' AS TYPE
+            FROM MDADS.ADS_PACKAGE_WAREHOUSE_SUM_TG GROUP BY PERIOD
+),FH AS(
+SELECT PERIOD,
+       SUM(WEIGHT_T)AS WEIGHT_T,
+       '发货' AS TYPE
+       FROM MDADS.ADS_SHIPMENT_SUM_TG
+       GROUP BY PERIOD
+), JD AS(
+   SELECT PERIOD ,
           SUM(ORDER_WGT_T) AS WEIGHT_T,
           '接单' AS TYPE
           FROM MDADS.ADS_ORDER_RECEIVE_SUMMARY_TG
           GROUP BY PERIOD
 )
-select 
+SELECT 
           PERIOD,
           WEIGHT_T,
           TYPE
       FROM RK
 UNION ALL
-      select 
+      SELECT 
           PERIOD,
           WEIGHT_T,
           TYPE
       FROM JD
  UNION ALL
- select 
+ SELECT 
           PERIOD,
           WEIGHT_T,
           TYPE

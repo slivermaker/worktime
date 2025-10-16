@@ -64,3 +64,104 @@ COMMENT ON COLUMN ads_all_pdt_line_outputsum.production__d_baseline_qty IS '日�
 COMMENT ON COLUMN ads_all_pdt_line_outputsum.production_d_baseline_wgt IS '日产量基准重量';
 COMMENT ON COLUMN ads_all_pdt_line_outputsum.etl_crt_dt IS 'ETL创建日期';
 COMMENT ON COLUMN ads_all_pdt_line_outputsum.etl_upd_dt IS 'ETL更新日期';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------
+
+
+INSERT INTO ads_all_pdt_line_outputsum(
+       PERIOD
+       ,PRODUCTION_LINE
+       ,MANUFACTURING_DEPT
+       ,FACTORY
+       ,WORK_ORG_NAME
+       ,MEASUREMENT_UNIT
+       ,DAILY_PRODUCTION_WGT_KG
+       ,DAILY_PRODUCTION_QTY
+       
+       ,INVENTOTY_COUNT_LM_WPCS
+       ,INVENTORY_WEIGHT_LM_T
+       ,INVENTORY_COUNT_M_WPCS_
+       ,INVENTORY_WEIGHT_M_T
+      
+)
+WITH TMP_Dim AS
+(
+SELECT 
+       B.PERIOD_DATE AS PERIOD
+       ,trunc(b.period_date,'MM') AS PERIOD_M
+       ,A.ZZB
+       ,A.CB
+       ,A.GX
+       ,A.DW
+       ,A.BS
+       ,A.FR
+       ,A.JLDW
+       ,A.SFJSCL
+       ,A.SFRKDW
+       ,A.RCLJZ
+       ,A.RJCJZ 
+       FROM ods_erp.ODS_CBZZBB2 A
+       CROSS JOIN MDDIM.dim_day_d B 
+       WHERE B.PERIOD_DATE>=DATE '2025-01-1' and b.period_date<sysdate
+       and sfjscl is not null
+)
+,tmp_dwd_bzrkb as(
+SELECT   TO_DATE(rq,'YY.MM.DD') AS PERIOD
+        ,rkdw
+        ,zl
+        ,js
+ FROM ods_jnmd.bzrkb
+)
+,tmp_dwd_join as(
+select A.PERIOD
+       ,a.zzb as production_line
+       ,A.ZZB
+       ,A.CB
+       ,A.DW
+       ,A.JLDW
+       ,SUM(ZL)/1000 AS WEIGHT_T
+       ,sum(js) as cnt
+       
+from tmp_dim A LEFT JOIN 
+     TMP_DWD_BZRKB  B
+  ON A.DW=B.RKDW AND A.PERIOD=B.PERIOD 
+  GROUP BY A.PERIOD,A.DW,A.ZZB,A.CB,A.GX,A.JLDW
+  )
+  select a.period
+         ,a.zzb
+         ,a.zzb
+         ,a.cb
+         ,a.dw
+         ,A.JLDW
+         ,a.weight_t
+         ,a.cnt
+         ,c.COUNT_LM_WPCS
+         ,c.WEIGHT_LM_T
+         ,c.COUNT_M_WPCS
+         ,c.WEIGHT_M_T
+   from tmp_dwd_join a 
+    left join ADS_FINISH_GOOD_STOCK c
+  on c.period=trunc(a.period,'MM') and a.production_line=c.PRODUCT_LINE and a.cb=c.FACTORY_NAME and c.WORKSHOP=a.dw
+
+
+SELECT * FROM ads_all_pdt_line_outputsum WHERE INVENTORY_WEIGHT_M_T IS NOT NULL
+
+TRUNCATE TABLE ads_all_pdt_line_outputsum
+
+SELECT * FROM ods_erp.ODS_CBZZBB2 WHERE  JLDW IS NOT NULL
+
+
+
