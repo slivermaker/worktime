@@ -19,7 +19,7 @@ COMMENT ON COLUMN ads_management_sum_tg.etl_upd_dt IS 'ETL更新日期';
 
 
 
-INSERT INTO MDADS.ads_management_sum_tg(
+INSERT INTO MDADS.ADS_MANAGEMENT_SUM_TG(
 PERIOD,
 WEIGHT_t,
 MANAGEMENT_TYPE

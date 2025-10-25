@@ -1,0 +1,19 @@
+CREATE TABLE ADS_SFC_STATION_LOG (
+    ENGRAVING_NUMBER VARCHAR2(2000),
+    POSITION NUMBER,
+    X_VALUE NUMBER,
+    Y_VALUE NUMBER,
+    LATEST_COLLECTION_TIME DATE,
+    ETL_CRT_DT DATE DEFAULT SYSDATE,
+    ETL_UPD_DT DATE DEFAULT SYSDATE
+);
+
+COMMENT ON TABLE ads_sfc_station_log IS '铸管看板壁厚曲线数据';
+
+COMMENT ON COLUMN ads_sfc_station_log.ENGRAVING_NUMBER IS '刻录号，产品唯一标识';
+COMMENT ON COLUMN ads_sfc_station_log.POSITION IS '位置序号';
+COMMENT ON COLUMN ads_sfc_station_log.X_VALUE IS 'x';
+COMMENT ON COLUMN ads_sfc_station_log.Y_VALUE IS 'y';
+COMMENT ON COLUMN ads_sfc_station_log.LATEST_COLLECTION_TIME IS '最新采集时间';
+COMMENT ON COLUMN ads_sfc_station_log.ETL_CRT_DT IS 'ETL创建时间';
+COMMENT ON COLUMN ads_sfc_station_log.ETL_UPD_DT IS 'ETL更新时间';

@@ -44,3 +44,57 @@ SELECT
     SYSDATE AS ETL_UPD_DT
 FROM 
     DWD_MKFM_PRODUCTION_DATA d;
+
+
+
+    -------------------------------------------------------------------------------------------------------
+
+
+truncate table DWS_MKFM_PRODUCTION_MONTHLY;
+INSERT INTO DWS_MKFM_PRODUCTION_MONTHLY (
+    PERIOD,
+    PERIOD_M,
+    RKDW,
+    SELF_PRODUCED_PIECE_COUNT,
+    SELF_PRODUCED_WEIGHT_T,
+    PURCHASED_PIECE_COUNT,
+    PURCHASED_WEIGHT_T,
+    SELF_PRODUCED_PIECE_M,
+    SELF_PRODUCED_M_T,
+    PURCHASED_PIECE_M,
+    PURCHASED_M_T,
+    ETL_CRT_DT,
+    ETL_UPD_DT
+)
+
+
+WITH TMP_Dim AS
+(
+    SELECT
+        B.PERIOD_DATE AS PERIOD
+        ,A.GX
+        ,A.DW
+        FROM ods_erp.ODS_CBZZBB2 A
+        CROSS JOIN MDDIM.dim_day_d B
+        WHERE B.PERIOD_DATE>=DATE '2025-01-1' and b.period_date<sysdate-1  
+        and nvl(scx,zzb) = '迈克阀门'
+        and gx in ( '包装工序' )
+    )
+SELECT 
+    DIM.PERIOD,
+    TRUNC(DIM.PERIOD, 'MM') AS PERIOD_M,
+    DIM.RKDW,
+    nvl(d.SELF_PRODUCED_PIECE_COUNT,0),
+    nvl(d.SELF_PRODUCED_WEIGHT_T,0),
+    nvl(d.PURCHASED_PIECE_COUNT,0),
+    nvl(d.PURCHASED_WEIGHT_T,0),
+    nvl(SUM(d.SELF_PRODUCED_PIECE_COUNT) OVER (PARTITION BY TRUNC(d.PERIOD, 'MM'), d.RKDW),0) AS SELF_PRODUCED_PIECE_M,
+    nvl(SUM(d.SELF_PRODUCED_WEIGHT_T) OVER (PARTITION BY TRUNC(d.PERIOD, 'MM'), d.RKDW),0) AS SELF_PRODUCED_M_T,
+    nvl(SUM(d.PURCHASED_PIECE_COUNT) OVER (PARTITION BY TRUNC(d.PERIOD, 'MM'), d.RKDW),0) AS PURCHASED_PIECE_M,
+    nvl(SUM(d.PURCHASED_WEIGHT_T) OVER (PARTITION BY TRUNC(d.PERIOD, 'MM'), d.RKDW),0) AS PURCHASED_M_T,
+    SYSDATE AS ETL_CRT_DT,
+    SYSDATE AS ETL_UPD_DT
+FROM 
+    TMP_Dim dim left join 
+    mddwd.DWD_MKFM_PRODUCTION_DATA d
+on dim .period=d.period and dim.dw=d.rkdw
