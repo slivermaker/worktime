@@ -6,7 +6,7 @@ SELECT * FROM ODS_TGRKMB_TG
 
 ##  入库flex
 
-~~~sql
+<!-- ~~~sql
 ×--制造部/单位维度每一日入库
 with tmp as (
 select 
@@ -34,7 +34,7 @@ select
      'zzb' type
 from tmp 
 group by period,zzb,'zzb'
-~~~
+~~~ -->
 
 
 ~~~sql
@@ -53,13 +53,13 @@ left join ods_erp.ods_cbzzbb_tg c on b.cb=c.cb
 )
 select
     PERIOD,
-    bs,
-    rkdw,
-    sum(zl/1000) zl ,
+    bs as label,
+    rkdw as work_org_name,
+    sum(zl/1000) as weight_t,
     ' dw' as type,
     SUM(sum(zl))OVER(
         PARTITION BY RKDW,BS,EXTRACT(YEAR FROM PERIOD), EXTRACT(MONTH FROM PERIOD) order by period
-        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW )/1000 as zl_sum
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW )/1000 as weight_t_m
 from  TMP 
 group by  PERIOD, bs,rkdw ,'dw'
 union all
@@ -93,33 +93,33 @@ JOIN ods_erp.ods_mlb_tg b ON a.bs = b.bs
 JOIN ods_erp.ods_cbzzbb_tg c ON b.cb = c.cb 
 GROUP BY c.zzb
 
-------- 各单位入库占比
-SELECT 
-    c.zzb,
-    a.bs,
-    100 * a.zl / (
-        SELECT SUM(zl) 
-        FROM (
-            SELECT 
-                bs,
-                SUM(zl / 1000) zl 
-            FROM ods_erp.ods_bzrkb_tg 
-            GROUP BY bs 
-        ) a 
-        JOIN ods_erp.ods_mlb_tg b ON a.bs = b.bs 
-        JOIN ods_erp.ods_cbzzbb_tg c ON b.cb = c.cb 
-        WHERE c.zzb = '玛钢制造部'
-    ) zb 
-FROM (
-    SELECT 
-        bs,
-        SUM(zl / 1000) zl 
-    FROM ods_erp.ods_bzrkb_tg 
-    GROUP BY bs 
-) a 
-JOIN ods_erp.ods_mlb_tg b ON a.bs = b.bs 
-JOIN ods_erp.ods_cbzzbb_tg c ON b.cb = c.cb 
-WHERE c.zzb = '玛钢制造部'
+-- ------- 各单位入库占比
+-- SELECT 
+--     c.zzb,
+--     a.bs,
+--     100 * a.zl / (
+--         SELECT SUM(zl) 
+--         FROM (
+--             SELECT 
+--                 bs,
+--                 SUM(zl / 1000) zl 
+--             FROM ods_erp.ods_bzrkb_tg 
+--             GROUP BY bs 
+--         ) a 
+--         JOIN ods_erp.ods_mlb_tg b ON a.bs = b.bs 
+--         JOIN ods_erp.ods_cbzzbb_tg c ON b.cb = c.cb 
+--         WHERE c.zzb = '玛钢制造部'
+--     ) zb 
+-- FROM (
+--     SELECT 
+--         bs,
+--         SUM(zl / 1000) zl 
+--     FROM ods_erp.ods_bzrkb_tg 
+--     GROUP BY bs 
+-- ) a 
+-- JOIN ods_erp.ods_mlb_tg b ON a.bs = b.bs 
+-- JOIN ods_erp.ods_cbzzbb_tg c ON b.cb = c.cb 
+-- WHERE c.zzb = '玛钢制造部'
 
 
 ---总制造部-各制造部下内部单位占比
@@ -367,3 +367,15 @@ WHERE TO_DATE(RQ,'YY.MM.DD')<SYSDATE-30
 GROUP BY c.zzb, a.rq  
 
 ~~~
+
+
+泰钢看板结存折线图表           ADS_TGKB_JC_LINECHART
+泰钢看板计内存计外存表           ADS_TGKB_IN_OUT_JC_FLEX
+泰钢看板盈亏数据表           ADS_TGKB_TZDSJB_FLEX
+泰钢看板半成品库存表           ADS_TGKB_JCB_FLEX
+泰钢看板库存汇总表           ADS_TGKB_HWJC_SUM
+泰钢看板入库折线图数据表           ADS_TGKB_WAREHOUSING_LINECHART
+泰钢看板产量占比           ADS_TGKB_PRODUCTION_RATE
+泰钢制造部/单位入库         ADS_TGKB_WAREHOUSING
+泰钢成品库存表所有数据       ODS_CPKCBI_TG
+泰钢入库目标                   ODS_TGRKMB_TG
