@@ -385,3 +385,100 @@ SELECT   PERIOD
     on c.period=trunc(a.period,'MM') and a.production_line=c.PRODUCT_LINE and a.cb=c.FACTORY_NAME and c.WORKSHOP=a.dw;
     left join tmp_fp d
     on d. period=a.period and a.dw=d.dw
+
+
+
+    ----------------------------------------------------------20251025
+
+INSERT INTO ads_all_pdt_line_outputsum(
+       PERIOD
+       ,PRODUCTION_LINE
+       ,MANUFACTURING_DEPT
+       ,FACTORY
+       ,WORK_ORG_NAME
+       ,MEASUREMENT_UNIT
+       ,DAILY_PRODUCTION_WGT_KG
+       ,DAILY_PRODUCTION_QTY
+
+
+       ,INVENTOTY_COUNT_LM_WPCS
+       ,INVENTORY_WEIGHT_LM_T
+       ,INVENTORY_COUNT_M_WPCS_
+       ,INVENTORY_WEIGHT_M_T
+
+)
+WITH TMP_Dim AS
+(
+SELECT
+       B.PERIOD_DATE AS PERIOD
+       ,trunc(b.period_date,'MM') AS PERIOD_M
+       ,a.scx
+       ,A.ZZB
+       ,A.CB
+       ,A.GX
+       ,A.DW
+       ,A.BS
+       ,A.FR
+       ,A.JLDW
+       ,A.SFJSCL
+       ,A.SFRKDW
+       ,A.RCLJZ
+       ,A.RJCJZ
+       FROM ods_erp.ODS_CBZZBB2 A
+       CROSS JOIN MDDIM.dim_day_d B
+       WHERE B.PERIOD_DATE>=DATE '2025-01-1' and b.period_date<sysdate-1
+       and sfjscl is not null
+)
+,tmp_dwd_bzrkb as(
+SELECT   PERIOD
+        ,INWARE_ORG as rkdw
+        ,WEIGHT as zl
+        ,PCS as js
+ FROM MDDWD.DWD_PACK_INWARE
+)
+,tmp_dwd_trans as(
+       select 
+              PERIOD,
+              OUTWARE_ORG as zcdw,
+              WEIGHT_KG as zl,
+              TRANSFER_PCS as js
+       from mddwd.DWD_TRANSFER_ALL
+    
+
+)
+,tmp_dwd_join as(
+        select A.PERIOD
+            ,a.scx as production_line
+            ,A.ZZB
+            ,A.CB
+            ,A.DW
+            ,A.JLDW
+            ,SUM(ZL)/1000 AS WEIGHT_T
+            ,sum(js) as cnt
+
+        from tmp_dim A LEFT JOIN(
+            select * from TMP_DWD_BZRKB
+            union all
+            select * from tmp_dwd_trans
+
+        )B
+  ON A.DW=B.RKDW AND A.PERIOD=B.PERIOD
+  GROUP BY A.PERIOD,A.DW,A.ZZB,a.scx,A.CB,A.GX,A.JLDW
+  )
+  select a.period
+         ,a.production_line
+         ,a.zzb
+         ,a.cb
+         ,a.dw
+         ,A.JLDW
+         ,a.weight_t
+         ,a.cnt
+
+        
+         ,c.COUNT_LM_WPCS
+         ,c.WEIGHT_LM_T
+         ,c.COUNT_M_WPCS
+         ,c.WEIGHT_M_T
+   from tmp_dwd_join a
+    left join ADS_FINISH_GOOD_STOCK c
+    on c.period=trunc(a.period,'MM') and  c.WORKSHOP=a.dw;

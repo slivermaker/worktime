@@ -1342,3 +1342,270 @@ GROUP BY PERIOD,WORK_ORG_NAME
 
 
 ----------------------------------------------------------------------------------------------------20251023
+
+
+
+
+TRUNCATE TABLE ADS_MKFM_PRODUTION_SUM;
+
+
+
+
+INSERT INTO ADS_MKFM_PRODUTION_SUM (
+    PROCESS_TYPE,
+    PERIOD,
+    WORK_ORG_NAME,
+    NOW_INVENTORY_LAST,
+    NON_PLANNED_INVENTORY_LAST,
+    NOW_INVENTORY,
+    NON_PLANNED_INVENTORY,
+    SELF_PRODUCED_PIECE_COUNT,
+    SELF_PRODUCED_WEIGHT_T,
+    PURCHASED_PIECE_COUNT,
+    PURCHASED_WEIGHT_T,
+    SELF_PRODUCED_PIECE_M,
+    SELF_PRODUCED_M_T,
+    PURCHASED_PIECE_M,
+    PURCHASED_M_T,
+    ETL_CRT_DT,
+    ETL_UPD_DT
+)
+
+
+WITH TMP_Dim AS
+(
+    SELECT
+        B.PERIOD_DATE AS PERIOD
+        ,A.GX
+        ,A.DW
+        FROM ods_erp.ODS_CBZZBB2 A
+        CROSS JOIN MDDIM.dim_day_d B
+        WHERE B.PERIOD_DATE>=DATE '2025-01-1' and b.period_date<sysdate-1  
+        and nvl(scx,zzb) = '迈克阀门'
+        and gx in ( '包装工序','半加工工序','半成品库工序','加工工序','包胶工序','表面处理工序','配件' )
+    ),
+main as(
+    select DIM.gx,
+        DIM.period,
+        DIM.DW,
+        a.now_inventory_last,
+        a.non_planned_inventory_last,
+        a.now_inventory,
+        a.non_planned_inventory,
+        e.self_produced_piece_count,
+        e.self_produced_weight_t,
+        e.purchased_piece_count,
+        e.purchased_weight_t,
+        e.self_produced_piece_m,
+        e.self_produced_m_t,
+        e.purchased_piece_m,
+        e.purchased_m_t
+    --from TMP_Dim dim 
+    --left join  mddws.dws_mkfm_semifinish_inventory a on trunc(dim.period,'MM')=a.period and dim.dw=a.work_org_name
+FROM TMP_Dim dim
+LEFT JOIN mddws.dws_mkfm_semifinish_inventory a 
+ON dim.dw = a.work_org_name
+AND (
+    -- 当 period < 2025-10-25 时，使用月份截断匹配
+    (dim.period < DATE '2025-10-25' AND TRUNC(dim.period, 'MM') = a.period)
+    OR
+    -- 当 period >= 2025-10-25 时，使用精确日期匹配
+    (dim.period >= DATE '2025-10-25' AND dim.period = a.period)
+)--添加每天的备份
+    left join (
+        select b.period,
+                b.rkdw,
+                sum(b.self_produced_piece_count) as self_produced_piece_count,
+                sum(b.self_produced_weight_t) as self_produced_weight_t,
+                sum(b.purchased_piece_count) as purchased_piece_count,
+                sum(b.purchased_weight_t) as purchased_weight_t,
+                sum(b.self_produced_piece_m) as self_produced_piece_m,
+                sum(b.self_produced_m_t) as self_produced_m_t,
+                sum(b.purchased_piece_m) as purchased_piece_m,
+                sum(b.purchased_m_t) as purchased_m_t
+            from mddws.dws_mkfm_production_monthly b
+            left join (
+                select gx,
+                        dw,
+                        scx
+                from ods_erp.ods_cbzzbb2    
+                where nvl(scx,zzb) = '迈克阀门'and gx in ( '包装工序' )--,'半加工工序','半成品库工序','加工工序','包胶工序','表面处理工序','配件'
+            ) bb
+            on b.rkdw = bb.dw
+                where bb.gx is not null
+                group by b.period,
+                        b.rkdw
+    union all
+    select 
+        period,
+        work_org_name as rkdw,
+        null,
+        sum(case when cc.gx in('表面处理工序') then weight-B01_WEIGHT else weight END) / 1000 as self_produced_weight_t,
+        null,
+        null,
+        null,
+        sum(sum(case when cc.gx in('表面处理工序') then weight-B01_WEIGHT else weight END))over(partition by trunc(period,'MM'),work_org_name order by period
+                rows between unbounded preceding and current row
+            ) / 1000 as self_produced_m_t,
+        null,
+        null
+    from mddwd.dwd_main_transfer_summary c
+    left join (
+    select gx,
+            dw,
+            scx
+        from ods_erp.ods_cbzzbb2
+    where nvl(scx,zzb) = '迈克阀门'and gx in ( '半加工工序','半成品库工序','加工工序','包胶工序','表面处理工序','配件' )--,包装工序
+    ) cc
+    on c.work_org_name = cc.dw
+        where cc.gx is not null
+        group by trunc(period,'MM'),
+                period,
+                work_org_name
+    ) e
+    on DIM.period = e.period
+    and DIM.DW = e.rkdw
+    
+)
+
+select 
+        main.gx
+        ,main.period
+        ,main.dw,
+        main.now_inventory_last,
+        main.non_planned_inventory_last,
+        main.now_inventory,
+        main.non_planned_inventory,
+        main.self_produced_piece_count,
+        main.self_produced_weight_t,
+        main.purchased_piece_count,
+        main.purchased_weight_t,
+        main.self_produced_piece_m,
+        main.self_produced_m_t,
+        main.purchased_piece_m,
+        main.purchased_m_t,
+        sysdate,
+        sysdate
+     from   main ;
+
+
+INSERT INTO ADS_MKFM_PRODUTION_SUM(
+       PERIOD
+       ,WORK_ORG_NAME
+       ,self_produced_weight_t
+       ,SELF_PRODUCED_M_T
+       
+)
+
+WITH TMP_CB AS(
+     SELECT DISTINCT DW,CB FROM ODS_ERP.ODS_FRGXGB WHERE CB IN('孝直分厂','玫德临沂')
+),
+TMP_IN AS(
+       SELECT DISTINCT DW FROM ODS_ERP.ODS_FRGXGB
+)
+
+,
+TMP_DWD AS(
+  SELECT a.rq 
+         ,CASE WHEN A.ZCDW NOT IN (SELECT DW FROM TMP_IN) THEN '外协'
+               ELSE (CASE --WHEN B.CB ='孝直分厂' THEN '孝直分厂'  孝直全部去除只要'半成品加工七组'
+                          WHEN B.CB='玫德临沂' THEN '临沂分厂'
+                     END)
+          END AS WORK_ORG_NAME
+          ,zl
+  FROM ods_erp.ods_qcsjb_ckyw A 
+  LEFT JOIN TMP_CB B
+  ON A.ZCDW=B.DW 
+  WHERE 
+      A.LQDW IN('迈克阀门毛坯周转组','迈克阀门分流组')
+    union all
+    
+    SELECT rq,
+    '孝直分厂',
+    zl
+    FROM ods_erp.ods_qcsjb_ckyw where ZCDW='半成品加工七组' and LQDW IN('迈克阀门毛坯周转组','迈克阀门分流组')
+
+)
+
+
+SELECT to_date(rq,'YY.MM.DD') AS PERIOD,
+       WORK_ORG_NAME,
+       SUM(ZL)/1000 AS NOW_INVENTOY,
+       SUM(SUM(ZL)/1000) OVER(PARTITION BY WORK_ORG_NAME, trunc(to_date(rq,'YY.MM.DD'),'MM')
+                                 ORDER BY  to_date(rq,'YY.MM.DD')
+                                 RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS MONTHLY_CUMULATIVE
+FROM TMP_DWD 
+WHERE WORK_ORG_NAME IS NOT NULL-- AND to_date(rq,'YY.MM.DD')+0.5<SYSDATE-1
+GROUP BY to_date(rq,'YY.MM.DD'), WORK_ORG_NAME
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------20251027
+
+
+
+WITH TMP_CB AS(
+     SELECT DISTINCT DW,CB FROM ODS_ERP.ODS_FRGXGB WHERE CB IN('孝直分厂','玫德临沂')
+),
+TMP_IN AS(
+       SELECT DISTINCT DW FROM ODS_ERP.ODS_FRGXGB
+)
+
+,
+TMP_DWD AS(
+  SELECT a.rq 
+         ,CASE WHEN A.ZCDW NOT IN (SELECT DW FROM TMP_IN) THEN '外协'
+               ELSE (CASE --WHEN B.CB ='孝直分厂' THEN '孝直分厂'  孝直全部去除只要'半成品加工七组'
+                          WHEN B.CB='玫德临沂' THEN '临沂分厂'
+                     END)
+          END AS WORK_ORG_NAME
+          ,zl
+  FROM ods_erp.ods_qcsjb_ckyw A 
+  LEFT JOIN TMP_CB B
+  ON A.ZCDW=B.DW 
+  WHERE 
+      A.LQDW IN('迈克阀门毛坯周转组','迈克阀门分流组')
+    union all
+    
+    SELECT rq,
+    '孝直分厂',
+    zl
+    FROM ods_erp.ods_qcsjb_ckyw where ZCDW='半成品加工七组' and LQDW IN('迈克阀门毛坯周转组','迈克阀门分流组')
+
+)
+,
+with tmp_dim as (
+    SELECT A.WORK_ORG_NAME,B.PERIOD_DATE AS PERIOD FROM 
+    (select '临沂分厂' as WORK_ORG_NAME from dual
+    union all
+    select '孝直分厂' as WORK_ORG_NAME from dual
+    union all
+    select '外协' as WORK_ORG_NAME from dual) A
+    CROSS JOIN MDDIM.DIM_DAY_D B 
+    WHERE B.PERIOD_DATE<SYSDATE-1 AND B.PERIOD_DATE>=DATE'2025-01-01'
+
+)
+
+SELECT DIM.PERIOD,
+       DIM.WORK_ORG_NAME,
+       SUM(ZL)/1000 AS NOW_INVENTOY,
+       SUM(SUM(ZL)/1000) OVER(PARTITION BY WORK_ORG_NAME, trunc(to_date(rq,'YY.MM.DD'),'MM')
+                                 ORDER BY  to_date(rq,'YY.MM.DD')
+                                 RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS MONTHLY_CUMULATIVE
+FROM TMP_DIM DIM 
+LEFT JOIN TMP_DWD DWD  
+    ON DIM.PERIOD=DWD.to_date(DWD.rq,'YY.MM.DD')
+    AND DIM.WORK_ORG_NAME=DWD.WORK_ORG_NAME
+
+WHERE DWD.WORK_ORG_NAME IS NOT NULL-- AND to_date(rq,'YY.MM.DD')+0.5<SYSDATE-1
+GROUP BY DIM.PERIOD,
+       DIM.WORK_ORG_NAME

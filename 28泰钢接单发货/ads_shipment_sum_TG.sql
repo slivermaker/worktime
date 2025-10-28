@@ -144,3 +144,30 @@ LEFT JOIN(
 ON SUBSTR(c.ORDER_num,1,3)=d.DDQZ
 left join ods_erp.ods_soctrl_tg e on e.ddh=c.order_num 
 where a.REAL_CONFIRM_DATE >date'2025-10-1'   and d.czbz is not null
+-------------------------------------------------------------------------------------------20251025
+
+
+
+SELECT distinct
+       c.ORDER_NUM,
+       d.czbz,
+       --b.FACTORY_ID,
+       a.REAL_CONFIRM_DATE,
+       a.NET_WEIGHT,
+       e.ddh,
+       F.CUSTOMER_COUNTRY
+FROM ods_ims.crm_lg_delivery_header a LEFT JOIN ods_ims.CRM_LG_DELIVERY_LINE B ON A.DELIVERY_HEAD_ID = B.DELIVERY_HEAD_ID
+LEFT JOIN ods_ims.CRM_SO_ORDER_HEADER C ON C.ORDER_ID = B.ORDER_ID
+LEFT JOIN(
+      select 
+          czbz,
+          ddqz
+      from MDDIM.DIM_ORDER_TO_TEXTURE
+      where lx='fhcz'
+)  d
+ON SUBSTR(c.ORDER_num,1,3)=d.DDQZ
+INNER join ods_erp.ods_soctrl_tg e on e.ddh=c.order_num 
+LEFT JOIN MDDIM.DIM_CUSTOMER F ON A.CUSTOMER_id=F.CUSTOMER_id and F.SOURCE_SYS='IMS'
+where a.REAL_CONFIRM_DATE >date'2025-01-1'  
+
+

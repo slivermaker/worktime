@@ -67,3 +67,38 @@ FROM ods_erp.ods_bzrkb_tg
 GROUP BY yyz_to_date(rq,'YY.MM.DD'),
     trunc(yyz_to_date(rq,'YY.MM.DD'),'MM') ,
     rkdw;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ------------------------------20251027
+    
+
+SELECT 
+    a.PERIOD,
+    TRUNC(A.PERIOD,'MM') AS PERIOD_M,
+    a.rkdw as WORK_ORG_NAME,
+    c.zzb ,
+    SUM(zl) WEIGHT_T 
+FROM (
+    SELECT 
+        bs,
+        rkdw,
+        yyz_to_date(rq,'YY.MM.DD') AS PERIOD,
+        SUM(dz*khjs / 1000) zl 
+    FROM ods_erp.ods_bzrkb_tg  
+    GROUP BY bs, yyz_to_date(rq,'YY.MM.DD'),rkdw   
+) a 
+JOIN ods_erp.ods_mlb_tg b ON a.bs = b.bs 
+JOIN ods_erp.ods_cbzzbb_tg c ON b.cb = c.cb  
+GROUP BY a.PERIOD, c.zzb,a.rkdw,TRUNC(A.PERIOD,'MM')

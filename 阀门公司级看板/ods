@@ -1,0 +1,163 @@
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	查询报表
+-- =============================================
+CREATE PROCEDURE [dbo].[proc_mkfm_record]
+	@depcode varchar(50),
+	@depname varchar(50),
+	@ball int,
+	@startdate datetime,
+	@enddate datetime
+AS
+BEGIN
+	declare @endtime datetime;
+
+	set @endtime=dateadd(SECOND,-1, DATEADD(day,1,@enddate));
+
+	create table #temp(id int identity(1,1),cdepcode varchar(50),cdepname varchar(50),icnt int default 0,iyz decimal(18,6) default 0,icnt_wqy int default 0,icnt_xz int default 0,iyz_xz decimal(18,6) default 0,icnt_gz int default 0,igz_rate decimal(18,2),icosts decimal(18,6) default 0,iminutes int default 0,idj_rate decimal(18,2))
+
+	if LEN(@depcode)>0
+	begin
+
+		--查询时间段内应点检的设备
+		SELECT distinct sb.id as sbtzm_id, pm.dstart,pm.dend, sb.cdw, sb.cdwcode
+		into #temp_ydjsb
+					   FROM dbo.mkfm_dj_plan_m AS pm INNER JOIN
+							dbo.mkfm_dj_plan_s AS ps ON pm.id = ps.mkfm_dj_plan_s_id INNER JOIN
+							dbo.mkfm_dj_standard_s AS ss ON ps.mkfm_dj_standard_s_autoid = ss.mkfm_dj_standard_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_s AS iis ON 
+							ss.mkfm_inspectionitem_s_autoid = iis.mkfm_inspectionitem_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_m AS iim ON iis.mkfm_inspectionitem_s_id = iim.id INNER JOIN
+							dbo.mkfm_sbtzm AS sb ON iim.sbtzm_id = sb.id
+							where pm.dstart>=@startdate and pm.dend<=@endtime and cdwcode like @depcode+'%' ;
+
+		--查询时间段内已点检的设备
+		SELECT distinct sb.id as sbtzm_id, pm.dstart,pm.dend, sb.cdw, sb.cdwcode
+		into #temp_djsb
+					   FROM dbo.mkfm_dj_plan_m AS pm INNER JOIN
+							dbo.mkfm_dj_plan_s AS ps ON pm.id = ps.mkfm_dj_plan_s_id INNER JOIN
+							dbo.mkfm_dj_standard_s AS ss ON ps.mkfm_dj_standard_s_autoid = ss.mkfm_dj_standard_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_s AS iis ON 
+							ss.mkfm_inspectionitem_s_autoid = iis.mkfm_inspectionitem_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_m AS iim ON iis.mkfm_inspectionitem_s_id = iim.id INNER JOIN
+							dbo.mkfm_sbtzm AS sb ON iim.sbtzm_id = sb.id
+							where pm.dstart>=@startdate and pm.dend<=@endtime and ps.isdone=1 and cdwcode like @depcode+'%' ;
+
+		select @depname=cdepname from oa_department where cdepcode=@depcode;
+
+		insert into #temp(cdepcode,cdepname,icnt, iyz,icnt_wqy,icnt_xz,iyz_xz,icnt_gz,igz_rate,icosts,iminutes,idj_rate)
+		select @depcode,@depname,SUM(cnt),SUM(iyz),sum(isnull(wqy_cnt,0)),SUM(isnull(xz_cnt,0)),sum(isnull(iyz_xz,0)),SUM(isnull(gz_cnt,0)),CONVERT(decimal(18,4),SUM(isnull(gz_cnt,0))*1.0/SUM(cnt))*100,SUM(isnull(icosts,0)),SUM(isnull(iminutes,0)) ,CONVERT(decimal(18,4),sum(dj_cnt)*1.0/sum(ydj_cnt)*100) from oa_department dep  left join
+		(
+		--设备数量、原值
+		select cdwcode, COUNT(1) cnt,SUM(iyz) iyz from  mkfm_sbtzm group by cdwcode) a on dep.cdepcode=a.cdwcode
+		left join 
+
+		--未启用设备数量
+		(select cdwcode,COUNT(1) wqy_cnt from  mkfm_sbtzm
+		where csbzt='未启用'group by cdwcode) wqy on dep.cdepcode=wqy.cdwcode
+
+		left join
+
+		--闲置设备数量、原值
+		(select cdwcode,COUNT(1) xz_cnt,SUM(iyz) iyz_xz from  mkfm_sbtzm
+		where csbzt='闲置' group by cdwcode) b on dep.cdepcode=b.cdwcode
+
+
+		--故障设备数
+		left join 
+		(
+		select cdwcode,COUNT(1) gz_cnt from 
+		(
+		select distinct s.cdwcode,r.sbtzm_id from  mkfm_sbtzm s 
+		inner join mkfm_repair_m r on s.id=r.sbtzm_id and irepairtype =0 and r.drepairdate between @startdate and @enddate) rp group by cdwcode) c on dep.cdepcode=c.cdwcode
+
+		left join 
+		(
+		--维保费用、工时
+		select s.cdwcode,sum(rs.icosts) icosts,sum(iminutes) iminutes from mkfm_sbtzm s inner join
+		mkfm_repair_m rm on s.id=rm.sbtzm_id inner join mkfm_repair_record rs on rm.id=rs.mkfm_repair_record_id where  rm.drepairdate between @startdate and @enddate group by s.cdwcode) d on dep.cdepcode=d.cdwcode
+
+		left join
+		(
+		  select cdwcode,COUNT(1) ydj_cnt from #temp_ydjsb group by cdwcode
+		) e on dep.cdepcode=e.cdwcode
+
+		left join
+		(
+		 select cdwcode,COUNT(1) dj_cnt from #temp_djsb group by cdwcode
+		) f on dep.cdepcode=f.cdwcode
+		where dep.cdepcode like @depcode+'%'
+
+	end
+	else if @ball=1
+	begin
+
+		--查询时间段内应点检的设备
+		SELECT distinct sb.id as sbtzm_id, pm.dstart,pm.dend, sb.cdw, sb.cdwcode
+		into #temp_ydjsb_all
+					   FROM dbo.mkfm_dj_plan_m AS pm INNER JOIN
+							dbo.mkfm_dj_plan_s AS ps ON pm.id = ps.mkfm_dj_plan_s_id INNER JOIN
+							dbo.mkfm_dj_standard_s AS ss ON ps.mkfm_dj_standard_s_autoid = ss.mkfm_dj_standard_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_s AS iis ON 
+							ss.mkfm_inspectionitem_s_autoid = iis.mkfm_inspectionitem_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_m AS iim ON iis.mkfm_inspectionitem_s_id = iim.id INNER JOIN
+							dbo.mkfm_sbtzm AS sb ON iim.sbtzm_id = sb.id
+							where pm.dstart>=@startdate and pm.dend<=@endtime ;
+
+		--查询时间段内已点检的设备
+		SELECT distinct sb.id as sbtzm_id, pm.dstart,pm.dend, sb.cdw, sb.cdwcode
+		into #temp_djsb_all
+					   FROM dbo.mkfm_dj_plan_m AS pm INNER JOIN
+							dbo.mkfm_dj_plan_s AS ps ON pm.id = ps.mkfm_dj_plan_s_id INNER JOIN
+							dbo.mkfm_dj_standard_s AS ss ON ps.mkfm_dj_standard_s_autoid = ss.mkfm_dj_standard_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_s AS iis ON 
+							ss.mkfm_inspectionitem_s_autoid = iis.mkfm_inspectionitem_s_autoid INNER JOIN
+							dbo.mkfm_inspectionitem_m AS iim ON iis.mkfm_inspectionitem_s_id = iim.id INNER JOIN
+							dbo.mkfm_sbtzm AS sb ON iim.sbtzm_id = sb.id
+							where pm.dstart>=@startdate and pm.dend<=@endtime and ps.isdone=1  ;
+
+		insert into #temp(cdepcode,cdepname,icnt, iyz,icnt_wqy,icnt_xz,iyz_xz,icnt_gz,igz_rate,icosts,iminutes,idj_rate)
+		select '0106','迈克阀门',SUM(cnt),SUM(iyz),sum(isnull(wqy_cnt,0)),SUM(isnull(xz_cnt,0)),sum(isnull(iyz_xz,0)),SUM(isnull(gz_cnt,0)),CONVERT(decimal(18,4),SUM(isnull(gz_cnt,0))*1.0/SUM(cnt))*100,SUM(isnull(icosts,0)),SUM(isnull(iminutes,0)) ,CONVERT(decimal(18,4),sum(dj_cnt)*1.0/sum(ydj_cnt)*100) from oa_department dep  left join
+		(
+		select cdwcode, COUNT(1) cnt,SUM(iyz) iyz from  mkfm_sbtzm group by cdwcode) a on dep.cdepcode=a.cdwcode
+		left join 
+
+
+		--未启用设备数量
+		(select cdwcode,COUNT(1) wqy_cnt from  mkfm_sbtzm
+		where csbzt='未启用'group by cdwcode) wqy on dep.cdepcode=wqy.cdwcode
+
+		left join
+
+		--闲置设备数量
+		(select cdwcode,COUNT(1) xz_cnt,SUM(iyz) iyz_xz from  mkfm_sbtzm
+		where csbzt='闲置' group by cdwcode) b on dep.cdepcode=b.cdwcode
+
+
+		--故障设备数
+		left join 
+		(
+		select cdwcode,COUNT(1) gz_cnt from 
+		(
+		select distinct s.cdwcode,r.sbtzm_id from  mkfm_sbtzm s 
+		inner join mkfm_repair_m r on s.id=r.sbtzm_id and irepairtype =0 and r.drepairdate between @startdate and @enddate) rp group by cdwcode) c on dep.cdepcode=c.cdwcode
+
+		left join 
+		(
+		select s.cdwcode,sum(rs.icosts) icosts,sum(iminutes) iminutes from mkfm_sbtzm s inner join
+		mkfm_repair_m rm on s.id=rm.sbtzm_id inner join mkfm_repair_record rs on rm.id=rs.mkfm_repair_record_id where rm.drepairdate between @startdate and @enddate group by s.cdwcode) d on dep.cdepcode=d.cdwcode
+
+		left join
+		(
+		  select cdwcode,COUNT(1) ydj_cnt from #temp_ydjsb_all group by cdwcode
+		) e on dep.cdepcode=e.cdwcode
+
+		left join
+		(
+		 select cdwcode,COUNT(1) dj_cnt from #temp_djsb_all group by cdwcode
+		) f on dep.cdepcode=f.cdwcode
+	end
+
+	select cdepcode,cdepname,icnt, iyz,isnull(icnt_wqy,0) as icnt_wqy ,isnull(icnt_xz,0) as icnt_xz,isnull(iyz_xz,0) as iyz_xz,isnull(icnt_gz,0) as icnt_gz,CAST( igz_rate as varchar(20))+'%' as igz_rate,isnull(icosts,0) as icosts,isnull(iminutes,0) as iminutes,CAST( idj_rate as varchar(20))+'%' as idj_rate from #temp;
+END

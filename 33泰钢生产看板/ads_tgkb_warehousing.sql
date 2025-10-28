@@ -65,3 +65,31 @@ SELECT
     )/1000 as zl_sum
 FROM TMP 
 GROUP BY PERIOD, zzb, 'zzb';
+
+---------------------------------------------------------
+
+WITH tmp AS (
+    SELECT 
+        yyz_to_date(a.rq, 'YY.MM.DD') AS PERIOD,
+        A.RKDW,
+        A.BS,
+        c.ZZB,
+        a.dz*khjs
+    FROM ods_erp.ods_bzrkb_tg a
+    LEFT JOIN ods_erp.ods_mlb_tg b ON a.bs = b.bs
+    LEFT JOIN ods_erp.ods_cbzzbb_tg c ON b.cb = c.cb
+)
+SELECT
+    PERIOD,
+    bs as label,
+    rkdw as work_org_name,
+    zzb,
+    sum(dz*khjs/1000) as weight_t,
+    SUM(sum(dz*khjs)) OVER(
+        PARTITION BY RKDW, BS, EXTRACT(YEAR FROM PERIOD), EXTRACT(MONTH FROM PERIOD) 
+        ORDER BY period
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    )/1000 as weight_t_m
+FROM TMP 
+GROUP BY PERIOD, bs, rkdw,zzb
+
