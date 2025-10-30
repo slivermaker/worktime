@@ -1,0 +1,56 @@
+sxh   int
+bm   varchar
+dw   varchar
+ftdd   varchar
+bs   varchar
+sfjjc   varchar
+sfjdd   varchar
+dz   varchar
+zzts   varchar
+qzrq   varchar
+wxdw   int
+cxcbs   varchar
+sczq   int
+dqddkh   int
+cj   varchar
+qzzt   varchar
+rydw   varchar
+rydwdh   int
+gx   varchar
+khxs   int
+gpybs   varchar
+bcphz   varchar
+sckz   varchar
+bgxjzjc   varchar
+jthlrdw   varchar
+rkdw   varchar
+cb   varchar
+jcjldw   varchar
+cpzt   varchar
+jdry   varchar
+dwlb   varchar
+khdw   varchar
+sx   decimal
+bh   varchar
+jclb   varchar
+qsjldw   varchar
+tfpgx   varchar
+lry   varchar
+gxsj   datetime
+xbs   varchar
+gdglbj   varchar
+line_id   int
+cqscx   varchar
+bomgl   int
+lchdm   varchar
+jdbm   varchar
+jddw   varchar
+jdcjbm   varchar
+jdcjmc   varchar
+jdcjck   varchar
+jdcjckbm   varchar
+jdcjckm   varchar
+
+
+
+soctrl
