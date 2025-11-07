@@ -168,6 +168,70 @@ LEFT JOIN(
 ON SUBSTR(c.ORDER_num,1,3)=d.DDQZ
 INNER join ods_erp.ods_soctrl_tg e on e.ddh=c.order_num 
 LEFT JOIN MDDIM.DIM_CUSTOMER F ON A.CUSTOMER_id=F.CUSTOMER_id and F.SOURCE_SYS='IMS'
-where a.REAL_CONFIRM_DATE >date'2025-01-1'  
+where a.REAL_CONFIRM_DATE >=date'2025-10-1'  
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------20251106仍是更改跨天日期的重量计算
+
+
+
+with tmp_dws as (
+  SELECT
+         TRUNC(a.REAL_CONFIRM_DATE,'DD') AS PERIOD,
+         case WHEN (g.PRODUCT_FORM = '40T' and g.PRODUCT_VARIETY in('K1GCL','K1GSL','G1GCL','G1GSL')) then '管卡' else d.czbz end  AS PRODUCT_NAME,
+         sum(NVL(B.REAL_NET_WEIGHT,b.LINE_NET_WEIGHT))/1000 as weight_t,
+         case when F.CUSTOMER_COUNTRY ='泰国' then '内销'
+              else '外销'
+         end as sale_type 
+  FROM ods_ims.crm_lg_delivery_header a 
+  LEFT JOIN ods_ims.CRM_LG_DELIVERY_LINE B ON A.DELIVERY_HEAD_ID = B.DELIVERY_HEAD_ID
+  LEFT JOIN ods_ims.CRM_SO_ORDER_HEADER C ON C.ORDER_ID = B.ORDER_ID
+  LEFT JOIN(
+        select 
+            czbz,
+            ddqz
+        from MDDIM.DIM_ORDER_TO_TEXTURE
+        where lx='fhcz' 
+  )  d
+  ON SUBSTR(c.ORDER_num,1,3)=d.DDQZ
+  INNER join ods_erp.ods_soctrl_tg e on e.ddh=c.order_num 
+  LEFT JOIN MDDIM.DIM_CUSTOMER F ON A.CUSTOMER_id=F.CUSTOMER_id and F.SOURCE_SYS='IMS'
+  left join  MDDIM.DIM_PRODUCT g   on b.ORG_ID=g.org_id and b.MATERIAL_CODE=g.PRODUCT_CODE
+  group by 
+         case WHEN (g.PRODUCT_FORM = '40T' and g.PRODUCT_VARIETY in('K1GCL','K1GSL','G1GCL','G1GSL')) then '管卡' else d.czbz end ,--因管卡也是40t开头，但是40t要算到球铁，
+         a.REAL_CONFIRM_DATE,
+         case when F.CUSTOMER_COUNTRY ='泰国' then '内销'
+              else '外销'
+         end
+       ,g.PRODUCT_VARIETY
+       ,g.PRODUCT_FORM
+
+),
+tmp_dws_last AS(
+  select  TRUNC(period,'DD') AS PERIOD 
+         ,PRODUCT_NAME
+         ,WEIGHT_T
+         ,SALE_TYPE
+         ,sum(weight_t) over(partition by trunc(period,'MM'),PRODUCT_NAME,SALE_TYPE 
+        ORDER BY period
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ACC_WIEGHT_LAST
+  from tmp_dws
+)
+SELECT A.PERIOD
+       ,A.PRODUCT_NAME
+       ,A.SALE_TYPE
+       ,A.WEIGHT_T
+       ,B.ACC_WIEGHT_LAST
+FROM 
+       TMP_DWS A LEFT JOIN TMP_DWS_LAST B
+       ON A.PERIOD=ADD_MONTHS(B.PERIOD,1) AND A.PRODUCT_NAME=B.PRODUCT_NAME AND A.SALE_TYPE=B.SALE_TYPE 
+
 
 

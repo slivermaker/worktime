@@ -1,20 +1,3 @@
-insert into  ads_delivery_cycle_rkdw(
-    production_line
-    ,factory
-    ,period
-    ,work_org_name
-    ,customer_name
-    ,order_code
-    ,order_ship_dt
-    ,product_variety
-    ,product_specification
-    ,product_form
-    ,product_texture
-    ,surface_treatment
-    ,last_inware_dt
-    ,order_receive_dt
-    ,delivery_cycle
-)
 
 with tmp_dws as (
 select 
@@ -68,12 +51,11 @@ FROM  MDDWD.DWD_PACK_INWARE where  pcs<0
       ,gxsj
       ,ROW_NUMBER() over(partition by ddh order by gxsj desc) as rn
     from tmp_dws
-    )   where rn=1
+    )   where rn=1 and substr(ddh,7,1)!='A' and substr(ddh,7,1)!='4' and substr(ddh,7,1)!='8'  AND KHM!='销售科内销' and khm !='自用订单' 
 )
 select 
     c.scx
     ,c.cb
-   ,a.rq
   ,a.rkdw
   ,a.khm
   ,a.ddh
@@ -90,17 +72,7 @@ from
        tmp_dws_last a
 left join mddwd.DWD_PRODUCT_ORDER_IMS_STG b on a.ddh=b. ORDER_CODE
 left join ods_erp.ods_cbzzbb2 c on c.dw=a.rkdw
-
-
-
-
-
-
-INVDOC_TRANSINLINE
-
-
-
-------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------20251103
 
 with tmp_dws as (
 select 
@@ -132,7 +104,7 @@ SELECT
        ,surface_treatment  
        ,update_dt
        ,PCS
-FROM  MDDWD.DWD_PACK_INWARE where  pcs>0
+FROM  MDDWD.DWD_PACK_INWARE where  pcs<0
 
 
 )
